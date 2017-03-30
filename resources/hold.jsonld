@@ -1,0 +1,58 @@
+{
+    "@graph": [
+        {
+            "@id": "_:TMPID",
+            "marc:holdingType": {
+                "@id": "marc:SinglePartItemHolding"
+            },
+            "@type": "Record",
+            "mainEntity": {
+                "@id": "_:TMPID#it"
+            },
+            "marc:encLevel": {
+                "@id": "marc:HoldingsLevel4"
+            }
+        },
+        {
+            "@id": "_:TMPID#it",
+            "marc:acquisitionStatus": {
+                "@id": "marc:CurrentlyReceived"
+            },
+            "marc:completeness": {
+                "@id": "marc:CompletenessType-1"
+            },
+            "marc:retentionPolicy": {
+                "@id": "marc:PermanentlyRetained"
+            },
+            "heldBy": {
+                "notation": "SEK",
+                "@id": "http://libris.kb.se/library/SEK",
+                "@type": "Organization"
+            },
+            "marc:copyReport": {
+                "@id": "marc:Separate"
+            },
+            "inventoryLevel": 1,
+            "itemOf": {
+                "@id": "http://libris.kb.se/resource/bib/816913"
+            },
+            "hasComponent": [
+                {
+                    "heldBy": [
+                        {
+                            "notation": "SEK",
+                            "@id": "https://libris.kb.se/library/SEK",
+                            "@type": "Organization"
+                        }
+                    ],
+                    "availability": [
+                        "EJ FJÄRRLÅN"
+                    ],
+                    "@type": "Item",
+                    "shelfMark": "Yxn"
+                }
+            ],
+            "@type": "Item"
+        }
+    ]
+}
