@@ -53,7 +53,7 @@ def setup_DELETE_tests(session):
 def _create_holding(session):
     # 1. POST hold.jsonld and grab Location header in response
     json_payload = _read_payload(HOLD_FILE)
-    result = session.post(ROOT_URL + "/create?collection=xl",
+    result = session.post(ROOT_URL + "/",
                           data=json_payload,
                           headers={'Content-Type': 'application/ld+json'})
     assert result.status_code == 201
