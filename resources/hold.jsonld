@@ -26,7 +26,7 @@
             },
             "heldBy": {
                 "notation": "SEK",
-                "@id": "http://libris.kb.se/library/SEK",
+                "@id": "https://libris.kb.se/library/SEK",
                 "@type": "Organization"
             },
             "marc:copyReport": {
