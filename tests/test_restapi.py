@@ -2,6 +2,8 @@ from lxml import html
 import os
 import pytest
 import requests
+import json
+import sys
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
@@ -60,6 +62,21 @@ def _create_holding(session):
     location = result.headers['Location']
     return location
 
+def _update_holding(session, holding_id, etag):
+    # Modify our in-memory testdata to hold the correct ID for the update
+    json_payload = _read_payload(HOLD_FILE)
+    json_object = json.loads(json_payload)
+    json_object['@graph'][0]['@id'] = holding_id
+    json_object['@graph'][0]['mainEntity']['@id'] = holding_id + '#it'
+    json_object['@graph'][1]['@id'] = holding_id + '#it'
+    json_payload = json.dumps(json_object)
+    
+    result = session.put(holding_id,
+                          data=json_payload,
+                          headers={'Content-Type': 'application/ld+json',
+                                   'If-Match': etag})
+    return result
+
 
 def _read_payload(filename):
     with open(filename, 'r') as f:
@@ -70,8 +87,12 @@ def _read_payload(filename):
 def test_delete_holding(session):
     holding_id = _create_holding(session)
 
-    result = session.get(holding_id)
+    result = session.get(holding_id, headers={'Accept':'application/ld+json'})
     assert result.status_code == 200
+
+    etag = result.headers['ETag']
+    result = _update_holding(session, holding_id, etag)
+    assert result.status_code == 204
 
     result = session.delete(holding_id)
     assert result.status_code == 204
