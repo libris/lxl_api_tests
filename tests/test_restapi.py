@@ -28,8 +28,7 @@ def session():
 
     result = session.get(AUTH_URL)
     page = html.fromstring(result.text)
-    csrf_xpath = page.xpath("//input[@name='csrfmiddlewaretoken']/@value")
-    csrf_token = list(set(csrf_xpath))[0]
+    csrf_token = _get_input_value(page, 'csrfmiddlewaretoken')
     next = list(set(page.xpath("//input[@name='next']/@value")))[0]
 
     payload = {
@@ -44,7 +43,37 @@ def session():
 
     assert result.status_code == 200
 
+    page = html.fromstring(result.text)
+    authorize_xpath = page.xpath("//form[@id='authorizationForm']")
+
+    if authorize_xpath:
+        csrf_token = _get_input_value(page, 'csrfmiddlewaretoken')
+        redirect_uri = _get_input_value(page, 'redirect_uri')
+        scope = _get_input_value(page, 'scope')
+        client_id = _get_input_value(page, 'client_id')
+        state = _get_input_value(page, 'state')
+        response_type = _get_input_value(page, 'response_type')
+
+        payload = {
+            'csrfmiddlewaretoken': csrf_token,
+            'redirect_uri': redirect_uri,
+            'scope': scope,
+            'client_id': client_id,
+            'state': state,
+            'response_type': response_type,
+            'allow': 'true'
+        }
+
+        result = session.post(result.url, data=payload,
+                              headers={'Referer': result.url})
+        assert result.status_code == 200
+
     return session
+
+
+def _get_input_value(page, name):
+    xpath = page.xpath("//input[@name='{0}']/@value".format(name))
+    return list(set(xpath))[0]
 
 
 def setup_DELETE_tests(session):
