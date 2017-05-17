@@ -90,6 +90,49 @@ def test_search_filtering(session):
     assert any(is_item(item) for item in es_result['items'])
 
 
+def test_search_limit(session):
+    search_endpoint = "/find"
+    limit0 = 0
+    limit1 = 1
+    limit200 = 200
+
+    # limit=0
+    query_params = {'q': '*',
+                    '_limit': limit0}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == limit0
+
+    # limit=1
+    query_params = {'q': '*',
+                    '_limit': limit1}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == limit1
+
+    # limit=200
+    query_params = {'q': '*',
+                    '_limit': limit200}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == limit200
+
+
 def is_instance(doc):
     return doc['@type'] == 'Instance'
 
