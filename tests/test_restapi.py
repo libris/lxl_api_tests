@@ -195,6 +195,55 @@ def test_search_isbn(session):
     assert len(es_result['items']) == 0
 
 
+def test_search_indexing(session):
+    search_endpoint = "/find"
+
+    query_params = {'itemOf.@id': 'http://libris.kb.se/resource/bib/816913'}
+
+    # before create - no hits
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 0
+
+    # after create - one hit
+    holding_id = _create_holding(session)
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 1
+
+    aggregates = es_result['stats']['sliceByDimension']
+    assert len(aggregates) == 1
+
+    type_aggregate = aggregates['@type']
+    observations = type_aggregate['observation']
+    assert len(observations) == 1
+    assert observations[0]['totalItems'] == 1
+
+    # after delete - no hits
+    result = session.delete(holding_id)
+    assert result.status_code == 204
+
+    result = session.get(holding_id)
+    assert result.status_code == 404
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 0
+
+
 def is_instance(doc):
     return doc['@type'] == 'Instance'
 
