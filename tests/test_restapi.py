@@ -22,8 +22,9 @@ def test_update_and_delete_holding(session):
 
 def test_search(session):
     search_endpoint = "/find"
+    limit = 1
     query_params = {'q': 'mumintrollet',
-                    '_limit': 1}
+                    '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
@@ -32,7 +33,7 @@ def test_search(session):
 
     es_result = result.json()
     assert es_result['totalItems'] == 4
-    assert len(es_result['items']) == 1
+    assert len(es_result['items']) == limit
 
     aggregations = es_result['stats']['sliceByDimension']
     assert len(aggregations['@type']['observation']) == 2
@@ -41,3 +42,57 @@ def test_search(session):
     search_mappings = search_details['mapping']
     assert len(search_mappings) == 1
 
+
+def test_search_aggregates(session):
+    search_endpoint = "/find"
+    limit = 0
+    query_params = {'q': '*',
+                    '_limit': limit,
+                    '_statsrepr': '{"publication.date":{"sort":"value","sortOrder":"desc","size":2}}'}
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == limit
+
+    aggregations = es_result['stats']['sliceByDimension']
+    assert len(aggregations['publication.date']['observation']) == 2
+
+    items_first = aggregations['publication.date']['observation'][0]['totalItems']
+    items_second = aggregations['publication.date']['observation'][1]['totalItems']
+    assert items_first >= items_second
+
+    query_params = {'q': '*',
+                    '_limit': limit,
+                    '_statsrepr': '{"publication.date":{"sort":"key","sortOrder":"desc","size":2}}'}
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    value_first = int(aggregations['publication.date']['observation'][0]['object']['label'])
+    value_second = int(aggregations['publication.date']['observation'][1]['object']['label'])
+    assert value_first >= value_second
+
+
+def test_search_filtering(session):
+    search_endpoint = "/find"
+    limit = 2000
+    query_params = {'q': '*',
+                    '@type': ['Instance', 'Item'],
+                    '_limit': limit}
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+
+    es_result = result.json()
+    assert any(is_instance(item) for item in es_result['items'])
+    assert any(is_item(item) for item in es_result['items'])
+
+
+def is_instance(doc):
+    return doc['@type'] == 'Instance'
+
+
+def is_item(doc):
+    return doc['@type'] == 'Item'
