@@ -166,6 +166,34 @@ def test_search_limit(session):
     assert len(es_result['items']) == limit200
 
 
+def test_search_isbn(session):
+    search_endpoint = "/find"
+
+    # good query
+    query_params = {'identifiedBy.value': '91-1-895301-8',
+                    'identifiedBy.@type': 'ISBN'}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 1
+
+    # bad query
+    query_params = {'identifiedBy.value': 'not_a_valid_isbn',
+                    'identifiedBy.@type': 'ISBN'}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 0
+
+
 def is_instance(doc):
     return doc['@type'] == 'Instance'
 
