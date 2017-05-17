@@ -58,6 +58,7 @@ def test_search_aggregates(session):
     assert len(es_result['items']) == limit
 
     aggregations = es_result['stats']['sliceByDimension']
+    assert len(aggregations) == 1
     assert len(aggregations['publication.date']['observation']) == 2
 
     items_first = aggregations['publication.date']['observation'][0]['totalItems']
