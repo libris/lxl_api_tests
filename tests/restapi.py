@@ -1,9 +1,9 @@
 from lxml import html
+import json
 import os
 import pytest
 import requests
-import json
-import sys
+
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
@@ -101,9 +101,9 @@ def update_holding(session, holding_id, etag):
     json_object['@graph'][0]['mainEntity']['@id'] = holding_id + '#it'
     json_object['@graph'][1]['@id'] = holding_id + '#it'
     json_payload = json.dumps(json_object)
-    
+
     result = session.put(holding_id,
-                          data=json_payload,
-                          headers={'Content-Type': 'application/ld+json',
-                                   'If-Match': etag})
+                         data=json_payload,
+                         headers={'Content-Type': 'application/ld+json',
+                                  'If-Match': etag})
     return result

@@ -1,9 +1,11 @@
 from restapi import *
 
+
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
 
-    result = session.get(holding_id, headers={'Accept':'application/ld+json'})
+    result = session.get(holding_id,
+                         headers={'Accept': 'application/ld+json'})
     assert result.status_code == 200
 
     etag = result.headers['ETag']
@@ -46,9 +48,14 @@ def test_search(session):
 def test_search_aggregates(session):
     search_endpoint = "/find"
     limit = 0
+    aggs_by_value = {"publication.date":
+                     {"sort": "value", "sortOrder": "desc", "size": 2}}
+    aggs_by_key = {"publication.date":
+                   {"sort": "key", "sortOrder": "desc", "size": 2}}
+
     query_params = {'q': '*',
                     '_limit': limit,
-                    '_statsrepr': '{"publication.date":{"sort":"value","sortOrder":"desc","size":2}}'}
+                    '_statsrepr': json.dumps(aggs_by_value)}
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
                          headers={'Accept': 'application/ld+json'})
@@ -61,18 +68,28 @@ def test_search_aggregates(session):
     assert len(aggregations) == 1
     assert len(aggregations['publication.date']['observation']) == 2
 
-    items_first = aggregations['publication.date']['observation'][0]['totalItems']
-    items_second = aggregations['publication.date']['observation'][1]['totalItems']
+    observations = aggregations['publication.date']['observation']
+    items_first = observations[0]['totalItems']
+    items_second = observations[1]['totalItems']
     assert items_first >= items_second
 
     query_params = {'q': '*',
                     '_limit': limit,
-                    '_statsrepr': '{"publication.date":{"sort":"key","sortOrder":"desc","size":2}}'}
+                    '_statsrepr': json.dumps(aggs_by_key)}
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
                          headers={'Accept': 'application/ld+json'})
-    value_first = int(aggregations['publication.date']['observation'][0]['object']['label'])
-    value_second = int(aggregations['publication.date']['observation'][1]['object']['label'])
+
+    es_result = result.json()
+    assert len(es_result['items']) == limit
+
+    aggregations = es_result['stats']['sliceByDimension']
+    assert len(aggregations) == 1
+    assert len(aggregations['publication.date']['observation']) == 2
+
+    observations = aggregations['publication.date']['observation']
+    value_first = int(observations[0]['object']['label'])
+    value_second = int(observations[1]['object']['label'])
     assert value_first >= value_second
 
 
