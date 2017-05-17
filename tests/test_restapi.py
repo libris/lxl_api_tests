@@ -78,16 +78,49 @@ def test_search_aggregates(session):
 def test_search_filtering(session):
     search_endpoint = "/find"
     limit = 2000
+    only_instance = ['Instance']
+    instance_and_type = ['Instance', 'Item']
+    bad_type = ['NonExistantType']
+
+    # single type
     query_params = {'q': '*',
-                    '@type': ['Instance', 'Item'],
+                    '@type': only_instance,
                     '_limit': limit}
+
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
                          headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
 
     es_result = result.json()
-    assert any(is_instance(item) for item in es_result['items'])
-    assert any(is_item(item) for item in es_result['items'])
+    assert all(is_instance(item) for item in es_result['items'])
+
+    # instance and type
+    query_params = {'q': '*',
+                    '@type': instance_and_type,
+                    '_limit': limit}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert all(is_instance(item) or is_item(item)
+               for item in es_result['items'])
+
+    # bad type
+    query_params = {'q': '*',
+                    '@type': bad_type,
+                    '_limit': limit}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 0
 
 
 def test_search_limit(session):
