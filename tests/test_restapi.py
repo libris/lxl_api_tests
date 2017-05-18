@@ -111,7 +111,7 @@ def test_search_filtering(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert all(is_instance(item) for item in es_result['items'])
+    assert all(is_type_instance(item) for item in es_result['items'])
 
     # instance and type
     query_params = {'q': '*',
@@ -124,7 +124,7 @@ def test_search_filtering(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert all(is_instance(item) or is_item(item)
+    assert all(is_type_instance(item) or is_type_item(item)
                for item in es_result['items'])
 
     # bad type
@@ -261,9 +261,9 @@ def test_search_indexing(session):
     assert len(es_result['items']) == 0
 
 
-def is_instance(doc):
+def is_type_instance(doc):
     return doc['@type'] == 'Instance'
 
 
-def is_item(doc):
+def is_type_item(doc):
     return doc['@type'] == 'Item'
