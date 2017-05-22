@@ -12,7 +12,9 @@ def test_update_and_delete_holding(session):
     result = update_holding(session, holding_id, etag)
     assert result.status_code == 204
 
+    _trigger_elastic_refresh(session)
     result = session.delete(holding_id)
+
     assert result.status_code == 204
 
     result = session.get(holding_id)
@@ -219,9 +221,6 @@ def test_search_indexing(session):
 
     query_params = {'itemOf.@id': 'http://libris.kb.se/resource/bib/816913'}
 
-    # ensure we have a fresh index to start with
-    _trigger_elastic_refresh(session)
-
     # before create - no hits
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
@@ -294,5 +293,4 @@ def is_type_item(doc):
 
 def _trigger_elastic_refresh(session):
     result = session.post(ES_REFRESH_URL)
-    sys.stderr.write("result: {0}\n".format(result.text))
     assert result.status_code == 200
