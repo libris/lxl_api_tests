@@ -21,6 +21,8 @@ def test_update_and_delete_holding(session):
     result = session.delete(holding_id)
     assert result.status_code == 410
 
+    _trigger_elastic_refresh(session)
+
 
 def test_search(session):
     search_endpoint = "/find"
@@ -217,6 +219,9 @@ def test_search_indexing(session):
 
     query_params = {'itemOf.@id': 'http://libris.kb.se/resource/bib/816913'}
 
+    # ensure we have a fresh index to start with
+    _trigger_elastic_refresh(session)
+
     # before create - no hits
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params,
@@ -224,18 +229,7 @@ def test_search_indexing(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert len(es_result['items']) == 0
-
-    # after create - one hit
-    holding_id = _create_holding(session)
-
-    result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
-    assert result.status_code == 200
-
-    es_result = result.json()
-    assert len(es_result['items']) == 1
+    assert len(es_result['items']) == 12
 
     aggregates = es_result['stats']['sliceByDimension']
     assert len(aggregates) == 1
@@ -243,11 +237,32 @@ def test_search_indexing(session):
     type_aggregate = aggregates['@type']
     observations = type_aggregate['observation']
     assert len(observations) == 1
-    assert observations[0]['totalItems'] == 1
+    assert observations[0]['totalItems'] == 12
+
+    # after create - one hit
+    holding_id = _create_holding(session)
+    _trigger_elastic_refresh(session)
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params,
+                         headers={'Accept': 'application/ld+json'})
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert len(es_result['items']) == 13
+
+    aggregates = es_result['stats']['sliceByDimension']
+    assert len(aggregates) == 1
+
+    type_aggregate = aggregates['@type']
+    observations = type_aggregate['observation']
+    assert len(observations) == 1
+    assert observations[0]['totalItems'] == 13
 
     # after delete - no hits
     result = session.delete(holding_id)
     assert result.status_code == 204
+    _trigger_elastic_refresh(session)
 
     result = session.get(holding_id)
     assert result.status_code == 404
@@ -258,7 +273,15 @@ def test_search_indexing(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert len(es_result['items']) == 0
+    assert len(es_result['items']) == 12
+
+    aggregates = es_result['stats']['sliceByDimension']
+    assert len(aggregates) == 1
+
+    type_aggregate = aggregates['@type']
+    observations = type_aggregate['observation']
+    assert len(observations) == 1
+    assert observations[0]['totalItems'] == 12
 
 
 def is_type_instance(doc):
@@ -267,3 +290,9 @@ def is_type_instance(doc):
 
 def is_type_item(doc):
     return doc['@type'] == 'Item'
+
+
+def _trigger_elastic_refresh(session):
+    result = session.post(ES_REFRESH_URL)
+    sys.stderr.write("result: {0}\n".format(result.text))
+    assert result.status_code == 200
