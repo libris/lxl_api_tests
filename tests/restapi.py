@@ -12,9 +12,6 @@ DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
 DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
 
-OAIPMH_URL = 'http://export-dev.libris.kb.se:8080/oaipmh/' # TEMP
-
-
 AUTH_URL = os.environ.get('LXLTESTING_AUTH_URL', DEFAULT_AUTH_URL)
 LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
                                DEFAULT_LXL_LOGIN_URL)
