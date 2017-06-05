@@ -38,15 +38,15 @@ def test_search(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] == 4
+    assert es_result['totalItems'] > 0
     assert len(es_result['items']) == limit
 
     aggregations = es_result['stats']['sliceByDimension']
-    assert len(aggregations['@type']['observation']) == 2
+    assert len(aggregations['@type']['observation']) > 0
 
     search_details = es_result['search']
     search_mappings = search_details['mapping']
-    assert len(search_mappings) == 1
+    assert len(search_mappings) > 0
 
 
 def test_search_aggregates(session):
@@ -228,7 +228,7 @@ def test_search_indexing(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert len(es_result['items']) == 12
+    num_items_before = len(es_result['items'])
 
     aggregates = es_result['stats']['sliceByDimension']
     assert len(aggregates) == 1
@@ -236,10 +236,10 @@ def test_search_indexing(session):
     type_aggregate = aggregates['@type']
     observations = type_aggregate['observation']
     assert len(observations) == 1
-    assert observations[0]['totalItems'] == 12
+    assert observations[0]['totalItems'] == num_items_before
 
     # after create - one hit
-    holding_id = _create_holding(session)
+    holding_id = create_holding(session)
     _trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -248,7 +248,7 @@ def test_search_indexing(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert len(es_result['items']) == 13
+    assert len(es_result['items']) == num_items_before + 1
 
     aggregates = es_result['stats']['sliceByDimension']
     assert len(aggregates) == 1
@@ -256,7 +256,7 @@ def test_search_indexing(session):
     type_aggregate = aggregates['@type']
     observations = type_aggregate['observation']
     assert len(observations) == 1
-    assert observations[0]['totalItems'] == 13
+    assert observations[0]['totalItems'] == num_items_before + 1
 
     # after delete - no hits
     result = session.delete(holding_id)
@@ -272,7 +272,7 @@ def test_search_indexing(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert len(es_result['items']) == 12
+    assert len(es_result['items']) == num_items_before
 
     aggregates = es_result['stats']['sliceByDimension']
     assert len(aggregates) == 1
@@ -280,7 +280,7 @@ def test_search_indexing(session):
     type_aggregate = aggregates['@type']
     observations = type_aggregate['observation']
     assert len(observations) == 1
-    assert observations[0]['totalItems'] == 12
+    assert observations[0]['totalItems'] == num_items_before
 
 
 def is_type_instance(doc):
