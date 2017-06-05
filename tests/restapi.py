@@ -11,11 +11,14 @@ HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
 DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
 DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
+DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
 
 AUTH_URL = os.environ.get('LXLTESTING_AUTH_URL', DEFAULT_AUTH_URL)
 LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
                                DEFAULT_LXL_LOGIN_URL)
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
+ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
+                                DEFAULT_ES_REFRESH_URL)
 
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
