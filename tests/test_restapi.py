@@ -1,6 +1,5 @@
 from restapi import *
 
-
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
 
@@ -100,8 +99,8 @@ def test_search_aggregates(session):
 def test_search_filtering(session):
     search_endpoint = "/find"
     limit = 2000
-    only_instance = ['Instance']
-    instance_and_type = ['Instance', 'Item']
+    only_instance = ['Manuscript']
+    instance_and_type = ['Manuscript', 'MovingImage']
     bad_type = ['NonExistantType']
 
     # single type
