@@ -7,6 +7,7 @@ import requests
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
+BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
 
 DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
@@ -23,6 +24,8 @@ ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
 PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
+
+THING_ID_PLACEHOLDER = '_:TMPID#it'
 
 
 @pytest.fixture(scope="module")
@@ -71,6 +74,7 @@ def session():
                               headers={'Referer': result.url})
         assert result.status_code == 200
 
+    session.headers.update({'Accept': 'application/ld+json'})
     return session
 
 
@@ -85,9 +89,20 @@ def _read_payload(filename):
         return payload
 
 
-def create_holding(session):
-    # 1. POST hold.jsonld and grab Location header in response
-    json_payload = _read_payload(HOLD_FILE)
+def create_holding(session, thing_id=None):
+    return _do_post(session, HOLD_FILE, thing_id)
+
+
+def create_bib(session, thing_id=None):
+    return _do_post(session, BIB_FILE, thing_id)
+
+
+def _do_post(session, filename, thing_id):
+    json_payload = _read_payload(filename)
+    if thing_id:
+        json_payload = json_payload.replace(THING_ID_PLACEHOLDER,
+                                            thing_id)
+
     result = session.post(ROOT_URL + "/",
                           data=json_payload,
                           headers={'Content-Type': 'application/ld+json'})
@@ -96,14 +111,10 @@ def create_holding(session):
     return location
 
 
-def update_holding(session, holding_id, etag):
-    # Modify our in-memory testdata to hold the correct ID for the update
-    json_payload = _read_payload(HOLD_FILE)
-    json_object = json.loads(json_payload)
-    json_object['@graph'][0]['@id'] = holding_id
-    json_object['@graph'][0]['mainEntity']['@id'] = holding_id + '#it'
-    json_object['@graph'][1]['@id'] = holding_id + '#it'
-    json_payload = json.dumps(json_object)
+def update_holding(session, holding_id, payload, etag):
+    # Update a simple field
+    payload['@graph'][1]['inventoryLevel'] = 2
+    json_payload = json.dumps(payload)
 
     result = session.put(holding_id,
                          data=json_payload,

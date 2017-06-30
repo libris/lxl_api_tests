@@ -3,12 +3,13 @@ from restapi import *
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
 
-    result = session.get(holding_id,
-                         headers={'Accept': 'application/ld+json'})
+    result = session.get(holding_id)
     assert result.status_code == 200
 
+    payload = result.json()
     etag = result.headers['ETag']
-    result = update_holding(session, holding_id, etag)
+
+    result = update_holding(session, holding_id, payload, etag)
     assert result.status_code == 204
 
     _trigger_elastic_refresh(session)
@@ -17,9 +18,172 @@ def test_update_and_delete_holding(session):
     assert result.status_code == 204
 
     result = session.get(holding_id)
-    assert result.status_code == 404
+    assert result.status_code == 410
 
     result = session.delete(holding_id)
+    assert result.status_code == 410
+
+    _trigger_elastic_refresh(session)
+
+
+def test_get_bib(session):
+    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_get')
+    expected_record_location = bib_id
+    expected_content_location = "{0}/data.jsonld".format(bib_id)
+    expected_document_header = "{0}".format(bib_id)
+    expected_link_header = "<{0}>; rel=describedby".format(bib_id)
+
+    result = session.get(bib_id)
+    assert result.status_code == 200
+
+    json_body = result.json()
+    graph = json_body['@graph']
+    record = graph[0]
+    thing = graph[1]
+    record_sameas = record['sameAs'][0]['@id']
+    thing_id = thing['@id']
+    thing_sameas = thing['sameAs'][0]['@id']
+    expected_thing_location = thing_id
+
+    # Record.sameAs
+    result = session.get(ROOT_URL + "/" + record_sameas,
+                         allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_record_location
+
+    # Thing.@id
+    result = session.get(ROOT_URL + "/" + thing_id)
+    assert result.status_code == 200
+
+    content_location = result.headers['Content-Location']
+    document_header = result.headers['Document']
+    link_header = result.headers['Link']
+    assert content_location == expected_content_location
+    assert document_header == expected_document_header
+    _assert_link_header(link_header, expected_link_header)
+
+    # Thing.sameAs
+    result = session.get(ROOT_URL + "/" + thing_sameas,
+                         allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_thing_location
+
+    # Cleanup
+    result = session.delete(bib_id)
+    assert result.status_code == 204
+
+    result = session.get(bib_id)
+    assert result.status_code == 410
+
+    result = session.get(ROOT_URL + "/" + record_sameas)
+    assert result.status_code == 404
+
+    result = session.get(ROOT_URL + "/" + thing_id)
+    assert result.status_code == 404
+
+    result = session.get(ROOT_URL + "/" + thing_sameas)
+    assert result.status_code == 404
+
+    _trigger_elastic_refresh(session)
+
+
+def test_delete_bib(session):
+    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_delete')
+
+    result = session.get(bib_id)
+    assert result.status_code == 200
+
+    expected_record_location = bib_id
+    json_body = result.json()
+    graph = json_body['@graph']
+    record = graph[0]
+    thing = graph[1]
+    record_sameas = record['sameAs'][0]['@id']
+    thing_id = thing['@id']
+    thing_sameas = thing['sameAs'][0]['@id']
+    expected_thing_location = thing_id
+
+    # Record.sameAs
+    result = session.delete(ROOT_URL + "/" + record_sameas,
+                            allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_record_location
+
+    # Thing.sameAs
+    result = session.delete(ROOT_URL + "/" + thing_sameas,
+                            allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_thing_location
+
+    # Thing.@id
+    result = session.delete(ROOT_URL + "/" + thing_id,
+                            allow_redirects=False)
+    assert result.status_code == 204
+
+    result = session.get(bib_id)
+    assert result.status_code == 410
+
+    _trigger_elastic_refresh(session)
+
+
+def test_update_bib(session):
+    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_update')
+
+    result = session.get(bib_id)
+    assert result.status_code == 200
+
+    expected_record_location = bib_id
+    etag = result.headers['ETag']
+    session.headers.update({'If-Match': etag})
+    session.headers.update({'Content-Type': 'application/ld+json'})
+
+    json_body = result.json()
+    graph = json_body['@graph']
+    record = graph[0]
+    thing = graph[1]
+    record_sameas = record['sameAs'][0]['@id']
+    thing_id = thing['@id']
+    thing_sameas = thing['sameAs'][0]['@id']
+    expected_thing_location = thing_id
+
+    # Update value in document
+    json_body['@graph'][0]['dimensions'] = '18 x 230 cm'
+    payload = json.dumps(json_body)
+
+    # Record.sameAs
+    result = session.put(ROOT_URL + "/" + record_sameas,
+                         data=payload, allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_record_location
+
+    # Thing.sameAs
+    result = session.put(ROOT_URL + "/" + thing_sameas,
+                         data=payload, allow_redirects=False)
+    assert result.status_code == 302
+
+    location = result.headers['Location']
+    assert location == expected_thing_location
+
+    # Thing.@id
+    result = session.put(ROOT_URL + "/" + thing_id,
+                         data=payload, allow_redirects=False)
+    assert result.status_code == 204
+
+    # cleanup
+    result = session.delete(bib_id)
+    assert result.status_code == 204
+
+    result = session.get(bib_id)
     assert result.status_code == 410
 
     _trigger_elastic_refresh(session)
@@ -32,8 +196,7 @@ def test_search(session):
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -60,8 +223,7 @@ def test_search_aggregates(session):
                     '_limit': limit,
                     '_statsrepr': json.dumps(aggs_by_value)}
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -80,8 +242,7 @@ def test_search_aggregates(session):
                     '_limit': limit,
                     '_statsrepr': json.dumps(aggs_by_key)}
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
 
     es_result = result.json()
     assert len(es_result['items']) == limit
@@ -109,8 +270,7 @@ def test_search_filtering(session):
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -122,8 +282,7 @@ def test_search_filtering(session):
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -136,8 +295,7 @@ def test_search_filtering(session):
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -155,8 +313,7 @@ def test_search_limit(session):
                     '_limit': limit0}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -167,8 +324,7 @@ def test_search_limit(session):
                     '_limit': limit1}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -179,8 +335,7 @@ def test_search_limit(session):
                     '_limit': limit200}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -195,8 +350,7 @@ def test_search_isbn(session):
                     'identifiedBy.@type': 'ISBN'}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -207,8 +361,7 @@ def test_search_isbn(session):
                     'identifiedBy.@type': 'ISBN'}
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -222,8 +375,7 @@ def test_search_indexing(session):
 
     # before create - no hits
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -242,8 +394,7 @@ def test_search_indexing(session):
     _trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -263,11 +414,10 @@ def test_search_indexing(session):
     _trigger_elastic_refresh(session)
 
     result = session.get(holding_id)
-    assert result.status_code == 404
+    assert result.status_code == 410
 
     result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params,
-                         headers={'Accept': 'application/ld+json'})
+                         params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
@@ -280,6 +430,11 @@ def test_search_indexing(session):
     observations = type_aggregate['observation']
     assert len(observations) == 1
     assert observations[0]['totalItems'] == num_items_before
+
+
+def _assert_link_header(link_header, expected):
+    link_headers = link_header.split(',')
+    assert expected in link_headers
 
 
 def is_type_instance(doc):
