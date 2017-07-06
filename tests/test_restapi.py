@@ -90,6 +90,51 @@ def test_get_bib(session):
 
     _trigger_elastic_refresh(session)
 
+    
+import sys
+
+# Create bib A, and holding B depending on A.
+# Delete A (should be blocked due to dependency)
+# Delete B (should be ok)
+# Delete A (should now be ok as dependency is gone)
+def test_delete_dependency(session):
+    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_delete')
+
+    result = session.get(bib_id)
+    assert result.status_code == 200
+
+    expected_record_location = bib_id
+    json_body = result.json()
+    graph = json_body['@graph']
+    record = graph[0]
+    record_id = record['@id']
+    thing = graph[1]
+    thing_sameas = thing['sameAs'][0]['@id']
+    hold_id = create_holding(session, None, thing_sameas.decode("utf-8").encode("ascii","ignore"))
+
+    # Delete A (should be blocked due to dependency)
+    result = session.delete(ROOT_URL + "/" + bib_id,
+                            allow_redirects=False)
+    assert result.status_code == 403
+
+    # Delete B (should be ok)
+    result = session.delete(ROOT_URL + "/" + hold_id,
+                            allow_redirects=False)
+    assert result.status_code == 204
+
+    # Delete A (should now be ok as dependency is gone)
+    result = session.delete(ROOT_URL + "/" + bib_id,
+                            allow_redirects=False)
+    assert result.status_code == 204
+
+    result = session.get(hold_id)
+    assert result.status_code == 410
+
+    result = session.get(bib_id)
+    assert result.status_code == 410
+
+    _trigger_elastic_refresh(session)
+
 
 def test_delete_bib(session):
     bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_delete')

@@ -26,6 +26,8 @@ USERNAME = os.environ.get('LXLTESTING_USERNAME')
 PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
 
 THING_ID_PLACEHOLDER = '_:TMPID#it'
+ITEM_OF_TMP = 'ITEM_OF_TMP'
+ITEM_OF_DEFAULT = 'http://libris.kb.se/resource/bib/816913'
 
 
 @pytest.fixture(scope="module")
@@ -89,20 +91,26 @@ def _read_payload(filename):
         return payload
 
 
-def create_holding(session, thing_id=None):
-    return _do_post(session, HOLD_FILE, thing_id)
+def create_holding(session, thing_id=None, item_of=None):
+    return _do_post(session, HOLD_FILE, thing_id, item_of)
 
 
 def create_bib(session, thing_id=None):
-    return _do_post(session, BIB_FILE, thing_id)
+    return _do_post(session, BIB_FILE, thing_id, None)
 
 
-def _do_post(session, filename, thing_id):
+def _do_post(session, filename, thing_id, item_of):
     json_payload = _read_payload(filename)
     if thing_id:
         json_payload = json_payload.replace(THING_ID_PLACEHOLDER,
                                             thing_id)
-
+    if item_of:
+        json_payload = json_payload.replace(ITEM_OF_TMP,
+                                            item_of)
+    else:
+        json_payload = json_payload.replace(ITEM_OF_TMP,
+                                            ITEM_OF_DEFAULT)
+        
     result = session.post(ROOT_URL + "/",
                           data=json_payload,
                           headers={'Content-Type': 'application/ld+json'})

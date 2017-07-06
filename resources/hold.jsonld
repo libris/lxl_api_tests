@@ -34,7 +34,7 @@
             },
             "inventoryLevel": 1,
             "itemOf": {
-                "@id": "http://libris.kb.se/resource/bib/816913"
+                "@id": "ITEM_OF_TMP"
             },
             "hasComponent": [
                 {
