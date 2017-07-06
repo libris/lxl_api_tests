@@ -91,8 +91,6 @@ def test_get_bib(session):
     _trigger_elastic_refresh(session)
 
     
-import sys
-
 # Create bib A, and holding B depending on A.
 # Delete A (should be blocked due to dependency)
 # Delete B (should be ok)
