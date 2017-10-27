@@ -28,7 +28,7 @@ def test_new_update_delete_bib():
     location = result.headers['Location']
     xlid = location.split("/")[-1]
 
-    # Get the record
+    # Get the record, confirm it's there
     result = requests.session().get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
@@ -41,7 +41,7 @@ def test_new_update_delete_bib():
                                     allow_redirects=False)
     assert result.status_code == 303
 
-    # Get the record
+    # Get the record, confirm still there
     result = requests.session().get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
@@ -52,13 +52,75 @@ def test_new_update_delete_bib():
                                        '0.1/cat/libris/bib/' + xlid)
     assert result.status_code == 200
 
-    # Get the record
+    # Get the record, confirm gone
     result = requests.session().get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
     assert result.status_code == 404
 
+    
+def test_new_hold_on_voyager_id():
+    marcxml_payload = _read_file(HOLD_FILE)
 
+    # Write a new record
+    result = requests.session().put(APIX_URL +
+                                    '0.1/cat/libris/bib/12141831/newhold',
+                                    data=marcxml_payload)
+    
+    assert result.status_code == 201
+    location = result.headers['Location']
+    xlid = location.split("/")[-1]
+
+    # Get the record, confirm it's there
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 200
+
+    # Delete the record
+    result = requests.session().delete(APIX_URL +
+                                       '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 200
+
+    # Get the record, confirm gone
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 404
+
+    
+def test_new_hold_on_xl_id():
+    marcxml_payload = _read_file(HOLD_FILE)
+
+    # Write a new record
+    result = requests.session().put(APIX_URL +
+                                    '0.1/cat/libris/bib/cwpqbclp4x4n61k/newhold',
+                                    data=marcxml_payload)
+    
+    assert result.status_code == 201
+    location = result.headers['Location']
+    xlid = location.split("/")[-1]
+
+    # Get the record, confirm it's there
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 200
+
+    # Delete the record
+    result = requests.session().delete(APIX_URL +
+                                       '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 200
+
+    # Get the record, confirm gone
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/hold/' + xlid)
+    assert result.status_code == 404
+
+    
+def test_search_isbn():
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/search?isbn=9780141330464')
+    assert result.status_code == 200
+    assert 'Alice, who falls down a rabbit hole' in result.text
+    
 
 def _read_file(filename):
     with open(filename, 'r') as f:
