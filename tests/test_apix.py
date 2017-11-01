@@ -127,7 +127,14 @@ def test_search_issn():
                                     '0.1/cat/libris/search?issn=0018-0327')
     assert result.status_code == 200
     assert 'Bilagor med varierande utseende och' in result.text
-    
+
+
+def test_search_urnnbn():
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/search?urnnbn=(OCoLC)964671537')
+    assert result.status_code == 200
+    assert 'Orig:s titel: Denna dagen, ett liv' in result.text
+
     
 def _read_file(filename):
     with open(filename, 'r') as f:
