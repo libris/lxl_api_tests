@@ -1,4 +1,5 @@
 from restapi import *
+import sys # sys.stderr.write('hej\n')
 
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
@@ -27,7 +28,8 @@ def test_update_and_delete_holding(session):
 
 
 def test_get_bib(session):
-    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_get')
+    bib_id = create_bib(session)
+    
     expected_record_location = bib_id
     expected_content_location = "{0}/data.jsonld".format(bib_id)
     expected_document_header = "{0}".format(bib_id)
@@ -57,13 +59,6 @@ def test_get_bib(session):
     result = session.get(ROOT_URL + "/" + thing_id)
     assert result.status_code == 200
 
-    content_location = result.headers['Content-Location']
-    document_header = result.headers['Document']
-    link_header = result.headers['Link']
-    assert content_location == expected_content_location
-    assert document_header == expected_document_header
-    _assert_link_header(link_header, expected_link_header)
-
     # Thing.sameAs
     result = session.get(ROOT_URL + "/" + thing_sameas,
                          allow_redirects=False)
@@ -83,7 +78,7 @@ def test_get_bib(session):
     assert result.status_code == 404
 
     result = session.get(ROOT_URL + "/" + thing_id)
-    assert result.status_code == 404
+    assert result.status_code == 410
 
     result = session.get(ROOT_URL + "/" + thing_sameas)
     assert result.status_code == 404
@@ -413,8 +408,16 @@ def test_search_isbn(session):
 
 def test_search_indexing(session):
     search_endpoint = "/find"
+    
+    bib_id = create_bib(session)
+    result = session.get(bib_id)
+    json_body = result.json()
+    graph = json_body['@graph']
+    record = graph[0]
+    thing = graph[1]
+    thing_id = thing['@id']
 
-    query_params = {'itemOf.@id': 'http://libris.kb.se/resource/bib/816913'}
+    query_params = {'itemOf.@id': thing_id}
 
     # before create - no hits
     result = session.get(ROOT_URL + search_endpoint,
@@ -423,17 +426,10 @@ def test_search_indexing(session):
 
     es_result = result.json()
     num_items_before = len(es_result['items'])
-
-    aggregates = es_result['stats']['sliceByDimension']
-    assert len(aggregates) == 1
-
-    type_aggregate = aggregates['@type']
-    observations = type_aggregate['observation']
-    assert len(observations) == 1
-    assert observations[0]['totalItems'] == num_items_before
+    assert not 'stats' in es_result
 
     # after create - one hit
-    holding_id = create_holding(session)
+    holding_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
     _trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -465,15 +461,8 @@ def test_search_indexing(session):
 
     es_result = result.json()
     assert len(es_result['items']) == num_items_before
-
-    aggregates = es_result['stats']['sliceByDimension']
-    assert len(aggregates) == 1
-
-    type_aggregate = aggregates['@type']
-    observations = type_aggregate['observation']
-    assert len(observations) == 1
-    assert observations[0]['totalItems'] == num_items_before
-
+    assert not 'stats' in es_result
+    
 
 def _assert_link_header(link_header, expected):
     link_headers = link_header.split(',')
