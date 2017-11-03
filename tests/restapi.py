@@ -29,7 +29,6 @@ THING_ID_PLACEHOLDER = '_:TMPID#it'
 ITEM_OF_TMP = 'ITEM_OF_TMP'
 ITEM_OF_DEFAULT = 'http://libris.kb.se/resource/bib/816913'
 
-
 @pytest.fixture(scope="module")
 def session():
     session = requests.session()
@@ -98,7 +97,7 @@ def create_holding(session, thing_id=None, item_of=None):
 def create_bib(session, thing_id=None):
     return _do_post(session, BIB_FILE, thing_id, None)
 
-
+fake_voyager_id = int(999999)
 def _do_post(session, filename, thing_id, item_of):
     json_payload = _read_payload(filename)
     if thing_id:
@@ -110,7 +109,11 @@ def _do_post(session, filename, thing_id, item_of):
     else:
         json_payload = json_payload.replace(ITEM_OF_TMP,
                                             ITEM_OF_DEFAULT)
-        
+
+    global fake_voyager_id
+    fake_voyager_id = fake_voyager_id + 1
+    json_payload = json_payload.replace("/bib/999999", "/bib/" + str(fake_voyager_id))
+                
     result = session.post(ROOT_URL + "/",
                           data=json_payload,
                           headers={'Content-Type': 'application/ld+json'})

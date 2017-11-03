@@ -91,7 +91,7 @@ def test_get_bib(session):
 # Delete B (should be ok)
 # Delete A (should now be ok as dependency is gone)
 def test_delete_dependency(session):
-    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_delete')
+    bib_id = create_bib(session)
 
     result = session.get(bib_id)
     assert result.status_code == 200
@@ -130,7 +130,7 @@ def test_delete_dependency(session):
 
 
 def test_delete_bib(session):
-    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_delete')
+    bib_id = create_bib(session)
 
     result = session.get(bib_id)
     assert result.status_code == 200
@@ -173,7 +173,7 @@ def test_delete_bib(session):
 
 
 def test_update_bib(session):
-    bib_id = create_bib(session, 'https://id.kb.se/term/sao/Data_update')
+    bib_id = create_bib(session)
 
     result = session.get(bib_id)
     assert result.status_code == 200
@@ -462,6 +462,14 @@ def test_search_indexing(session):
     es_result = result.json()
     assert len(es_result['items']) == num_items_before
     assert not 'stats' in es_result
+
+    # cleanup
+    result = session.delete(bib_id)
+    assert result.status_code == 204
+
+    result = session.get(bib_id)
+    assert result.status_code == 410
+
     
 
 def _assert_link_header(link_header, expected):
