@@ -50,7 +50,6 @@ def session():
     }
 
     result = session.post(LOGIN_URL, data=payload,
-                          cookies=_get_session_cookie(session),
                           headers={'referer': result.url})
 
     assert result.status_code == 200
@@ -69,7 +68,6 @@ def session():
         }
 
         result = session.post(result.url, data=payload,
-                              cookies=_get_session_cookie(session),
                               headers={'Referer': result.url})
         assert result.status_code == 200
 
@@ -86,11 +84,6 @@ def _read_payload(filename):
     with open(filename, 'r') as f:
         payload = f.read()
         return payload
-
-
-def _get_session_cookie(session):
-    cookies = requests.utils.dict_from_cookiejar(session.cookies)
-    return cookies
 
 
 def create_holding(session, thing_id=None, item_of=None):
@@ -122,7 +115,6 @@ def _do_post(session, filename, thing_id, item_of):
                                         "/bib/" + str(fake_voyager_id))
 
     result = session.post(ROOT_URL + "/",
-                          cookies=_get_session_cookie(session),
                           data=json_payload,
                           headers={'Content-Type': 'application/ld+json'})
     assert result.status_code == 201
@@ -136,7 +128,6 @@ def update_holding(session, holding_id, payload, etag):
     json_payload = json.dumps(payload)
 
     result = session.put(holding_id,
-                         cookies=_get_session_cookie(session),
                          data=json_payload,
                          headers={'Content-Type': 'application/ld+json',
                                   'If-Match': etag})
