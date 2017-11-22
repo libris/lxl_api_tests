@@ -2,16 +2,12 @@
     "@graph": [
         {
             "@id": "_:TMPID",
-            "marc:holdingType": {
-                "@id": "marc:SinglePartItemHolding"
-            },
+            "marc:holdingType": "marc:SinglePartItemHolding",
             "@type": "Record",
             "mainEntity": {
                 "@id": "_:TMPID#it"
             },
-            "marc:encLevel": {
-                "@id": "marc:HoldingsLevel4"
-            }
+            "encodingLevel": "marc:HoldingsLevel4"
         },
         {
             "@id": "_:TMPID#it",
