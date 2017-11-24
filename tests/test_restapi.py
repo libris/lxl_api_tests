@@ -103,7 +103,8 @@ def test_delete_dependency(session):
     record_id = record['@id']
     thing = graph[1]
     thing_sameas = thing['sameAs'][0]['@id']
-    hold_id = create_holding(session, None, thing_sameas.decode("utf-8").encode("ascii","ignore"))
+    thing_id = thing['@id']
+    hold_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
 
     # Delete A (should be blocked due to dependency)
     result = session.delete(ROOT_URL + "/" + bib_id,
