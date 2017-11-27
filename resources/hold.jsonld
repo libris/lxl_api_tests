@@ -45,7 +45,10 @@
                         "EJ FJÄRRLÅN"
                     ],
                     "@type": "Item",
-                    "shelfMark": "Yxn"
+                    "shelfMark": {
+                    		 "@type": "ShelfMark",
+				 "label": "niv\u00e53"
+		    }
                 }
             ],
             "@type": "Item"
