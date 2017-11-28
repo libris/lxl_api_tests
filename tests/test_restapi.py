@@ -228,6 +228,63 @@ def test_update_bib(session):
     _trigger_elastic_refresh(session)
 
 
+def test_get_bib_version(session):
+    bib_id = create_bib(session)
+
+    result = session.get(bib_id)
+    assert result.status_code == 200
+
+    result = session.get(bib_id + '?version=0')
+    assert result.status_code == 200
+
+    etag = result.headers['ETag']
+    session.headers.update({'If-Match': etag})
+    session.headers.update({'Content-Type': 'application/ld+json'})
+
+    json_body = result.json()
+    graph = json_body['@graph']
+    thing = graph[1]
+    thing_id = thing['@id']
+
+    # Update value in document
+    json_body['@graph'][1]['dimensions'] = '18 x 230 cm'
+    payload = json.dumps(json_body)
+
+    result = session.put(ROOT_URL + "/" + thing_id,
+                         data=payload, allow_redirects=False)
+    assert result.status_code == 204
+
+    old_version = session.get(bib_id + '?version=0')
+    assert old_version.status_code == 200
+
+    old_json = old_version.json()
+    assert old_json['@graph'][1]['dimensions'] != '18 x 230 cm'
+
+    new_version = session.get(bib_id + '?version=1')
+    assert new_version.status_code == 200
+
+    new_json = new_version.json()
+    assert new_json['@graph'][1]['dimensions'] == '18 x 230 cm'
+
+    # cleanup
+    result = session.delete(bib_id)
+    assert result.status_code == 204
+
+    result = session.get(bib_id)
+    assert result.status_code == 410
+
+    result = session.get(bib_id + '?version=0')
+    assert result.status_code == 200
+
+    result = session.get(bib_id + '?version=1')
+    assert result.status_code == 200
+
+    result = session.get(bib_id + '?version=2')
+    assert result.status_code == 410
+
+    _trigger_elastic_refresh(session)
+
+
 def test_search(session):
     search_endpoint = "/find"
     limit = 1
