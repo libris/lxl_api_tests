@@ -14,5 +14,5 @@ def test_get_record(session):
     assert '<record>' in result.text
     assert result.status_code == 200
 
-    result = session.delete(holding_id)
+    result = delete_post(session, holding_id)
     assert result.status_code == 204

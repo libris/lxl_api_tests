@@ -10,7 +10,6 @@ HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
 BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
 
 DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
-DEFAULT_AUTH_COOKIE_DOMAIN = 'localhost'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
 DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
@@ -21,8 +20,6 @@ LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
 ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
                                 DEFAULT_ES_REFRESH_URL)
-AUTH_COOKIE_DOMAIN = os.environ.get('LXLTESTING_AUTH_COOKIE_DOMAIN',
-                                    DEFAULT_AUTH_COOKIE_DOMAIN)
 
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
@@ -31,6 +28,8 @@ PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
 THING_ID_PLACEHOLDER = '_:TMPID#it'
 ITEM_OF_TMP = 'ITEM_OF_TMP'
 ITEM_OF_DEFAULT = 'http://libris.kb.se/resource/bib/816913'
+XL_ACTIVE_SIGEL_HEADER = 'XL-Active-Sigel'
+ACTIVE_SIGEL = 'Utb2'
 
 
 @pytest.fixture(scope="module")
@@ -94,6 +93,16 @@ def create_bib(session, thing_id=None):
     return _do_post(session, BIB_FILE, thing_id, None)
 
 
+def put_post(session, thing_id, **kwargs):
+    headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
+    return session.put(thing_id, headers=headers, **kwargs)
+
+
+def delete_post(session, thing_id, **kwargs):
+    headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
+    return session.delete(thing_id, headers=headers, **kwargs)
+
+
 fake_voyager_id = int(999999)
 
 
@@ -114,9 +123,11 @@ def _do_post(session, filename, thing_id, item_of):
     json_payload = json_payload.replace("/bib/999999",
                                         "/bib/" + str(fake_voyager_id))
 
+    headers = {'Content-Type': 'application/ld+json',
+               XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
     result = session.post(ROOT_URL + "/",
                           data=json_payload,
-                          headers={'Content-Type': 'application/ld+json'})
+                          headers=headers)
     assert result.status_code == 201
     location = result.headers['Location']
     return location
@@ -127,8 +138,11 @@ def update_holding(session, holding_id, payload, etag):
     payload['@graph'][1]['inventoryLevel'] = 2
     json_payload = json.dumps(payload)
 
+    headers = {'Content-Type': 'application/ld+json',
+               'If-Match': etag,
+               XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
+
     result = session.put(holding_id,
                          data=json_payload,
-                         headers={'Content-Type': 'application/ld+json',
-                                  'If-Match': etag})
+                         headers=headers)
     return result

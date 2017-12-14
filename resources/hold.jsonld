@@ -21,8 +21,8 @@
                 "@id": "marc:PermanentlyRetained"
             },
             "heldBy": {
-                "notation": "Utb1",
-                "@id": "https://libris.kb.se/library/Utb1",
+                "notation": "Utb2",
+                "@id": "https://libris.kb.se/library/Utb2",
                 "@type": "Organization"
             },
             "marc:copyReport": {
@@ -36,8 +36,8 @@
                 {
                     "heldBy": [
                         {
-                            "notation": "Utb1",
-                            "@id": "https://libris.kb.se/library/Utb1",
+                            "notation": "Utb2",
+                            "@id": "https://libris.kb.se/library/Utb2",
                             "@type": "Organization"
                         }
                     ],

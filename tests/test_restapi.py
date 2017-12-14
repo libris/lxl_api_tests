@@ -14,14 +14,14 @@ def test_update_and_delete_holding(session):
     assert result.status_code == 204
 
     _trigger_elastic_refresh(session)
-    result = session.delete(holding_id)
+    result = delete_post(session, holding_id)
 
     assert result.status_code == 204
 
     result = session.get(holding_id)
     assert result.status_code == 410
 
-    result = session.delete(holding_id)
+    result = delete_post(session, holding_id)
     assert result.status_code == 410
 
     _trigger_elastic_refresh(session)
@@ -68,7 +68,7 @@ def test_get_bib(session):
     assert location == expected_thing_location
 
     # Cleanup
-    result = session.delete(bib_id)
+    result = delete_post(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -107,18 +107,18 @@ def test_delete_dependency(session):
     hold_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
 
     # Delete A (should be blocked due to dependency)
-    result = session.delete(ROOT_URL + "/" + bib_id,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + bib_id,
+                         allow_redirects=False)
     assert result.status_code == 403
 
     # Delete B (should be ok)
-    result = session.delete(ROOT_URL + "/" + hold_id,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + hold_id,
+                         allow_redirects=False)
     assert result.status_code == 204
 
     # Delete A (should now be ok as dependency is gone)
-    result = session.delete(ROOT_URL + "/" + bib_id,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + bib_id,
+                         allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(hold_id)
@@ -147,24 +147,24 @@ def test_delete_bib(session):
     expected_thing_location = thing_id
 
     # Record.sameAs
-    result = session.delete(ROOT_URL + "/" + record_sameas,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + record_sameas,
+                         allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = session.delete(ROOT_URL + "/" + thing_sameas,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + thing_sameas,
+                         allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_thing_location
 
     # Thing.@id
-    result = session.delete(ROOT_URL + "/" + thing_id,
-                            allow_redirects=False)
+    result = delete_post(session, ROOT_URL + "/" + thing_id,
+                         allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -198,28 +198,28 @@ def test_update_bib(session):
     payload = json.dumps(json_body)
 
     # Record.sameAs
-    result = session.put(ROOT_URL + "/" + record_sameas,
-                         data=payload, allow_redirects=False)
+    result = put_post(session, ROOT_URL + "/" + record_sameas,
+                      data=payload, allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = session.put(ROOT_URL + "/" + thing_sameas,
-                         data=payload, allow_redirects=False)
+    result = put_post(session, ROOT_URL + "/" + thing_sameas,
+                      data=payload, allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_thing_location
 
     # Thing.@id
-    result = session.put(ROOT_URL + "/" + thing_id,
-                         data=payload, allow_redirects=False)
+    result = put_post(session, ROOT_URL + "/" + thing_id,
+                      data=payload, allow_redirects=False)
     assert result.status_code == 204
 
     # cleanup
-    result = session.delete(bib_id)
+    result = delete_post(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -250,8 +250,8 @@ def test_get_bib_version(session):
     json_body['@graph'][1]['dimensions'] = '18 x 230 cm'
     payload = json.dumps(json_body)
 
-    result = session.put(ROOT_URL + "/" + thing_id,
-                         data=payload, allow_redirects=False)
+    result = put_post(session, ROOT_URL + "/" + thing_id,
+                      data=payload, allow_redirects=False)
     assert result.status_code == 204
 
     old_version = session.get(bib_id + '?version=0')
@@ -267,7 +267,7 @@ def test_get_bib_version(session):
     assert new_json['@graph'][1]['dimensions'] == '18 x 230 cm'
 
     # cleanup
-    result = session.delete(bib_id)
+    result = delete_post(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -506,7 +506,7 @@ def test_search_indexing(session):
     assert observations[0]['totalItems'] == num_items_before + 1
 
     # after delete - no hits
-    result = session.delete(holding_id)
+    result = delete_post(session, holding_id)
     assert result.status_code == 204
     _trigger_elastic_refresh(session)
 
@@ -522,7 +522,7 @@ def test_search_indexing(session):
     assert not 'stats' in es_result
 
     # cleanup
-    result = session.delete(bib_id)
+    result = delete_post(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
