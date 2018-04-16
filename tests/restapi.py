@@ -1,4 +1,7 @@
 from lxml import html
+from oauthlib.oauth2 import MobileApplicationClient
+from requests_oauthlib import OAuth2Session
+from urlparse import urlparse
 import json
 import os
 import pytest
@@ -24,6 +27,7 @@ ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
 PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
+OAUTH_CLIENT_ID = os.environ.get('LXLTESTING_OAUTH_CLIENT_ID')
 
 THING_ID_PLACEHOLDER = '_:TMPID#it'
 ITEM_OF_TMP = 'ITEM_OF_TMP'
@@ -35,8 +39,11 @@ ACTIVE_SIGEL = 'Utb2'
 @pytest.fixture(scope="module")
 def session():
     session = requests.session()
+    oauth = OAuth2Session(
+        client=MobileApplicationClient(client_id=OAUTH_CLIENT_ID))
+    authorization_url, state = oauth.authorization_url(AUTH_URL)
 
-    result = session.get(AUTH_URL)
+    result = session.get(authorization_url)
     page = html.fromstring(result.text)
     csrf_token = _get_input_value(page, 'csrf_token')
     next = list(set(page.xpath("//input[@name='next_redirect']/@value")))[0]
@@ -68,6 +75,8 @@ def session():
 
         result = session.post(result.url, data=payload,
                               headers={'Referer': result.url})
+        token = _get_token_from_url(result.url)
+        session.headers.update({'Authorization': 'Bearer {}'.format(token)})
         assert result.status_code == 200
 
     session.headers.update({'Accept': 'application/ld+json'})
@@ -77,6 +86,21 @@ def session():
 def _get_input_value(page, name):
     xpath = page.xpath("//input[@name='{0}']/@value".format(name))
     return list(set(xpath))[0]
+
+
+def _get_token_from_url(url):
+    params = _get_params_from_url_fragment(url)
+    return params['access_token']
+
+
+def _get_params_from_url_fragment(url):
+    parsed_url = urlparse(url)
+    fragment = parsed_url.fragment
+    params = {}
+    for pair in fragment.split('&'):
+        k, v = pair.split('=')
+        params[k] = v
+    return params
 
 
 def _read_payload(filename):
