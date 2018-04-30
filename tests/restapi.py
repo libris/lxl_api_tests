@@ -28,6 +28,7 @@ LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
 PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
 OAUTH_CLIENT_ID = os.environ.get('LXLTESTING_OAUTH_CLIENT_ID')
+OAUTH_SCOPES = ['read', 'write']
 
 THING_ID_PLACEHOLDER = '_:TMPID#it'
 ITEM_OF_TMP = 'ITEM_OF_TMP'
@@ -40,7 +41,8 @@ ACTIVE_SIGEL = 'Utb2'
 def session():
     session = requests.session()
     oauth = OAuth2Session(
-        client=MobileApplicationClient(client_id=OAUTH_CLIENT_ID))
+        client=MobileApplicationClient(client_id=OAUTH_CLIENT_ID),
+        scope=OAUTH_SCOPES)
     authorization_url, state = oauth.authorization_url(AUTH_URL)
 
     result = session.get(authorization_url)
