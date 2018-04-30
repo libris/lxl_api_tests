@@ -67,11 +67,9 @@ def session():
 
     if authorize_xpath:
         csrf_token = _get_input_value(page, 'csrf_token')
-        scope = _get_input_value(page, 'scope')
 
         payload = {
             'csrf_token': csrf_token,
-            'scope': scope,
             'confirm': 'y'
         }
 
