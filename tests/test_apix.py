@@ -1,6 +1,7 @@
 from restapi import *
 import os
 import sys # sys.stderr.write('hej\n')
+import xml.etree.ElementTree as ET
 
 APIX_URL = os.environ.get('LXLTESTING_APIX_URL')
 if not APIX_URL.endswith("/"):
@@ -57,6 +58,53 @@ def test_new_update_delete_bib():
                                     '0.1/cat/libris/bib/' +
                                     xlid)
     assert result.status_code == 404
+
+def test_update_on_voyager_id():
+    marcxml_payload = _read_file(BIB_FILE)
+
+    # Write a new record
+    result = requests.session().put(APIX_URL +
+                                    '0.1/cat/libris/bib/new',
+                                    data=marcxml_payload)
+
+    assert result.status_code == 201
+    location = result.headers['Location']
+    xlid = location.split("/")[-1]
+    
+    # Get the record, confirm still there
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/bib/' +
+                                    xlid)
+    assert result.status_code == 200
+
+    # Get the voyager ID from the response
+    xmlRecord = ET.fromstring(result.content.decode("utf-8").encode("ascii","ignore"))
+    voyagerId = xmlRecord.findall("{http://api.libris.kb.se/apix/}record/{http://api.libris.kb.se/apix/}metadata/{http://www.loc.gov/MARC21/slim}record/{http://www.loc.gov/MARC21/slim}controlfield[@tag='001']")[0].text
+    
+    # Update the record
+    result = requests.session().put(APIX_URL +
+                                    '0.1/cat/libris/bib/' + voyagerId,
+                                    data=marcxml_payload,
+                                    allow_redirects=False)
+    assert result.status_code == 303
+
+    # Get the record, confirm still there
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/bib/' +
+                                    xlid)
+    assert result.status_code == 200
+
+    # Delete the record
+    result = requests.session().delete(APIX_URL +
+                                       '0.1/cat/libris/bib/' + xlid)
+    assert result.status_code == 200
+
+    # Get the record, confirm gone
+    result = requests.session().get(APIX_URL +
+                                    '0.1/cat/libris/bib/' +
+                                    xlid)
+    assert result.status_code == 404
+
 
     
 def test_new_hold_on_voyager_id():
