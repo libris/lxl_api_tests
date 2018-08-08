@@ -16,6 +16,8 @@ DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
 DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
+DEFAULT_APIX_USER = 'test'
+DEFAULT_APIX_PASSWORD = 'test'
 
 AUTH_URL = os.environ.get('LXLTESTING_AUTH_URL', DEFAULT_AUTH_URL)
 LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
@@ -27,6 +29,9 @@ ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
 PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
+APIX_USER = os.environ.get('LXLTESTING_APIX_USER', DEFAULT_APIX_USER)
+APIX_PASSWORD = os.environ.get('LXLTESTING_APIX_PASSWORD',
+                               DEFAULT_APIX_PASSWORD)
 OAUTH_CLIENT_ID = os.environ.get('LXLTESTING_OAUTH_CLIENT_ID')
 OAUTH_SCOPES = ['read', 'write']
 
@@ -35,6 +40,13 @@ ITEM_OF_TMP = 'ITEM_OF_TMP'
 ITEM_OF_DEFAULT = 'http://libris.kb.se/resource/bib/816913'
 XL_ACTIVE_SIGEL_HEADER = 'XL-Active-Sigel'
 ACTIVE_SIGEL = 'Utb2'
+
+
+@pytest.fixture(scope="module")
+def apix_session():
+    session = requests.session()
+    session.auth = (APIX_USER, APIX_PASSWORD)
+    return session
 
 
 @pytest.fixture(scope="module")
