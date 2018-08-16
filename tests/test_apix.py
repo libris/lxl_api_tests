@@ -52,7 +52,7 @@ def test_update_on_voyager_id(apix_session):
     marcxml_payload = _read_file(BIB_FILE)
 
     # Write a new record
-    result = requests.session().put(APIX_URL +
+    result = apix_session.put(APIX_URL +
                                     '0.1/cat/libris/bib/new',
                                     data=marcxml_payload)
 
@@ -61,7 +61,7 @@ def test_update_on_voyager_id(apix_session):
     xlid = location.split("/")[-1]
     
     # Get the record, confirm still there
-    result = requests.session().get(APIX_URL +
+    result = apix_session.get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
     assert result.status_code == 200
@@ -71,25 +71,25 @@ def test_update_on_voyager_id(apix_session):
     voyagerId = xmlRecord.findall("{http://api.libris.kb.se/apix/}record/{http://api.libris.kb.se/apix/}metadata/{http://www.loc.gov/MARC21/slim}record/{http://www.loc.gov/MARC21/slim}controlfield[@tag='001']")[0].text
     
     # Update the record
-    result = requests.session().put(APIX_URL +
+    result = apix_session.put(APIX_URL +
                                     '0.1/cat/libris/bib/' + voyagerId,
                                     data=marcxml_payload,
                                     allow_redirects=False)
     assert result.status_code == 303
 
     # Get the record, confirm still there
-    result = requests.session().get(APIX_URL +
+    result = apix_session.get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
     assert result.status_code == 200
 
     # Delete the record
-    result = requests.session().delete(APIX_URL +
+    result = apix_session.delete(APIX_URL +
                                        '0.1/cat/libris/bib/' + xlid)
     assert result.status_code == 200
 
     # Get the record, confirm gone
-    result = requests.session().get(APIX_URL +
+    result = apix_session.get(APIX_URL +
                                     '0.1/cat/libris/bib/' +
                                     xlid)
     assert result.status_code == 404
