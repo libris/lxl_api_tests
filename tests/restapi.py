@@ -18,6 +18,8 @@ DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
 DEFAULT_APIX_USER = 'test'
 DEFAULT_APIX_PASSWORD = 'test'
+DEFAULT_APIX_RO_USER = 'readonly'
+DEFAULT_APIX_RO_PASSWORD = 'readonly'
 
 AUTH_URL = os.environ.get('LXLTESTING_AUTH_URL', DEFAULT_AUTH_URL)
 LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
@@ -32,6 +34,10 @@ PASSWORD = os.environ.get('LXLTESTING_PASSWORD')
 APIX_USER = os.environ.get('LXLTESTING_APIX_USER', DEFAULT_APIX_USER)
 APIX_PASSWORD = os.environ.get('LXLTESTING_APIX_PASSWORD',
                                DEFAULT_APIX_PASSWORD)
+APIX_RO_USER = os.environ.get('LXLTESTING_APIX_RO_USER',
+                              DEFAULT_APIX_RO_USER)
+APIX_RO_PASSWORD = os.environ.get('LXLTESTING_APIX_RO_PASSWORD',
+                                  DEFAULT_APIX_RO_PASSWORD)
 OAUTH_CLIENT_ID = os.environ.get('LXLTESTING_OAUTH_CLIENT_ID')
 OAUTH_SCOPES = ['read', 'write']
 
@@ -46,6 +52,13 @@ ACTIVE_SIGEL = 'Utb2'
 def apix_session():
     session = requests.session()
     session.auth = (APIX_USER, APIX_PASSWORD)
+    return session
+
+
+@pytest.fixture(scope="module")
+def apix_readonly_session():
+    session = requests.session()
+    session.auth = (APIX_RO_USER, APIX_RO_PASSWORD)
     return session
 
 

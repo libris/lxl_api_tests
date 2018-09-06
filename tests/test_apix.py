@@ -16,6 +16,58 @@ def test_get_nonexisting_record(apix_session):
     assert result.status_code == 404
 
 
+def test_readonly_bib(session, apix_readonly_session, apix_session):
+    marcxml_payload = _read_file(BIB_FILE)
+
+    # Try to write a new record
+    result = session.put(APIX_URL + '0.1/cat/libris/bib/new',
+                         data=marcxml_payload)
+    assert result.status_code == 401
+    result = apix_readonly_session.put(APIX_URL + '0.1/cat/libris/bib/new',
+                                       data=marcxml_payload)
+    assert result.status_code == 403
+
+    # Write a new record
+    result = apix_session.put(APIX_URL + '0.1/cat/libris/bib/new',
+                              data=marcxml_payload)
+    assert result.status_code == 201
+    location = result.headers['Location']
+    xlid = location.split("/")[-1]
+    bib_url = APIX_URL + '0.1/cat/libris/bib/' + xlid
+
+    # Get the record, confirm it's there
+    result = apix_readonly_session.get(bib_url)
+    assert result.status_code == 200
+    result = apix_session.get(bib_url)
+    assert result.status_code == 200
+
+    # Update the record
+    result = apix_readonly_session.put(bib_url, data=marcxml_payload,
+                                       allow_redirects=False)
+    assert result.status_code == 403
+    result = apix_session.put(bib_url, data=marcxml_payload,
+                              allow_redirects=False)
+    assert result.status_code == 303
+
+    # Get the record, confirm still there
+    result = apix_readonly_session.get(bib_url)
+    assert result.status_code == 200
+    result = apix_session.get(bib_url)
+    assert result.status_code == 200
+
+    # Delete the record
+    result = apix_readonly_session.delete(bib_url)
+    assert result.status_code == 403
+    result = apix_session.delete(bib_url)
+    assert result.status_code == 200
+
+    # Get the record, confirm gone
+    result = apix_readonly_session.get(bib_url)
+    assert result.status_code == 404
+    result = apix_session.get(bib_url)
+    assert result.status_code == 404
+
+
 def test_new_update_delete_bib(apix_session):
     marcxml_payload = _read_file(BIB_FILE)
 
