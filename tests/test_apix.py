@@ -42,6 +42,11 @@ def test_readonly_bib(session, apix_readonly_session, apix_session):
     result = apix_session.get(bib_url)
     assert result.status_code == 200
 
+    # Modify marc_xml payload to have the new 001 (the assigned controlNumber)
+    xmlRecord = ET.fromstring(marcxml_payload)
+    xmlRecord.findall("controlfield[@tag='001']")[0].text = xlid
+    marcxml_payload = ET.tostring(xmlRecord, encoding='utf-8', method='xml')
+
     # Update the record
     result = apix_readonly_session.put(bib_url, data=marcxml_payload,
                                        allow_redirects=False)
@@ -83,6 +88,11 @@ def test_new_update_delete_bib(apix_session):
     result = apix_session.get(APIX_URL + '0.1/cat/libris/bib/' + xlid)
     assert result.status_code == 200
 
+    # Modify marc_xml payload to have the new 001 (the assigned controlNumber)
+    xmlRecord = ET.fromstring(marcxml_payload)
+    xmlRecord.findall("controlfield[@tag='001']")[0].text = xlid
+    marcxml_payload = ET.tostring(xmlRecord, encoding='utf-8', method='xml')
+
     # Update the record
     result = apix_session.put(APIX_URL + '0.1/cat/libris/bib/' + xlid,
                               data=marcxml_payload, allow_redirects=False)
@@ -102,48 +112,27 @@ def test_new_update_delete_bib(apix_session):
 
 def test_update_on_voyager_id(apix_session):
     marcxml_payload = _read_file(BIB_FILE)
-
-    # Write a new record
-    result = apix_session.put(APIX_URL +
-                                    '0.1/cat/libris/bib/new',
-                                    data=marcxml_payload)
-
-    assert result.status_code == 201
-    location = result.headers['Location']
-    xlid = location.split("/")[-1]
-    
-    # Get the record, confirm still there
-    result = apix_session.get(APIX_URL +
-                                    '0.1/cat/libris/bib/' +
-                                    xlid)
-    assert result.status_code == 200
-
-    # Get the voyager ID from the response
-    xmlRecord = ET.fromstring(result.content.decode("utf-8").encode("ascii","ignore"))
-    voyagerId = xmlRecord.findall("{http://api.libris.kb.se/apix/}record/{http://api.libris.kb.se/apix/}metadata/{http://www.loc.gov/MARC21/slim}record/{http://www.loc.gov/MARC21/slim}controlfield[@tag='001']")[0].text
     
     # Update the record
     result = apix_session.put(APIX_URL +
-                                    '0.1/cat/libris/bib/' + voyagerId,
+                                    '0.1/cat/libris/bib/1783264',
                                     data=marcxml_payload,
                                     allow_redirects=False)
     assert result.status_code == 303
 
     # Get the record, confirm still there
     result = apix_session.get(APIX_URL +
-                                    '0.1/cat/libris/bib/' +
-                                    xlid)
+                                    '0.1/cat/libris/bib/1783264')
     assert result.status_code == 200
 
     # Delete the record
     result = apix_session.delete(APIX_URL +
-                                       '0.1/cat/libris/bib/' + xlid)
+                                       '0.1/cat/libris/bib/1783264')
     assert result.status_code == 200
 
     # Get the record, confirm gone
     result = apix_session.get(APIX_URL +
-                                    '0.1/cat/libris/bib/' +
-                                    xlid)
+                                    '0.1/cat/libris/bib/1783264')
     assert result.status_code == 404
 
 
