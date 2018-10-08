@@ -1,8 +1,18 @@
 from restapi import *
 import sys # sys.stderr.write('hej\n')
 
+import pytest
+
 merge_endpoint = "/_merge"
 
+
+def test_merge(session):
+    query_params = {'id1': 'foo', 'id2': 'bar'}
+    result = session.post(ROOT_URL + merge_endpoint, params=query_params)
+    assert result.status_code == 403
+
+
+@pytest.mark.skip(reason="Insufficient privileges")
 def test_merge_and_delete(session):
     # Create two records
     bib_id1 = create_bib(session)
@@ -23,6 +33,7 @@ def test_merge_and_delete(session):
     assert result.status_code == 404
 
 
+@pytest.mark.skip(reason="Insufficient privileges")
 def test_merge_with_holdings(session):
     # Create two records
     bib_id1 = create_bib(session)
