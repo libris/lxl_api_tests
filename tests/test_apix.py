@@ -125,17 +125,6 @@ def test_update_on_voyager_id(apix_session):
                                     '0.1/cat/libris/bib/1783264')
     assert result.status_code == 200
 
-    # Delete the record
-    result = apix_session.delete(APIX_URL +
-                                       '0.1/cat/libris/bib/1783264')
-    assert result.status_code == 200
-
-    # Get the record, confirm gone
-    result = apix_session.get(APIX_URL +
-                                    '0.1/cat/libris/bib/1783264')
-    assert result.status_code == 404
-
-
 def test_new_hold_on_voyager_id(apix_session):
     marcxml_payload = _read_file(HOLD_FILE)
 
