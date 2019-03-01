@@ -310,9 +310,9 @@ def test_search(session):
 def test_search_aggregates(session):
     search_endpoint = "/find"
     limit = 0
-    aggs_by_value = {"publication.year.keyword":
+    aggs_by_value = {"publication.year":
                      {"sort": "value", "sortOrder": "desc", "size": 2}}
-    aggs_by_key = {"publication.year.keyword":
+    aggs_by_key = {"publication.year":
                    {"sort": "key", "sortOrder": "desc", "size": 2}}
 
     query_params = {'q': '*',
@@ -327,9 +327,9 @@ def test_search_aggregates(session):
 
     aggregations = es_result['stats']['sliceByDimension']
     assert len(aggregations) == 1
-    assert len(aggregations['publication.year.keyword']['observation']) == 2
+    assert len(aggregations['publication.year']['observation']) == 2
 
-    observations = aggregations['publication.year.keyword']['observation']
+    observations = aggregations['publication.year']['observation']
     items_first = observations[0]['totalItems']
     items_second = observations[1]['totalItems']
     assert items_first >= items_second
@@ -345,7 +345,7 @@ def test_search_aggregates(session):
 
     aggregations = es_result['stats']['sliceByDimension']
     assert len(aggregations) == 1
-    assert len(aggregations['publication.year.keyword']['observation']) == 2
+    assert len(aggregations['publication.year']['observation']) == 2
 
 
 def test_search_filtering(session):
