@@ -307,6 +307,29 @@ def test_search(session):
     assert len(search_mappings) > 0
 
 
+def test_search_empty_sort_param(session):
+    search_endpoint = "/find"
+    limit = 1
+    query_params = {'q': 'mumintrollet',
+                    '_limit': limit,
+                    '_sort': ''}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 0
+    assert len(es_result['items']) == limit
+
+    aggregations = es_result['stats']['sliceByDimension']
+    assert len(aggregations['@type']['observation']) > 0
+
+    search_details = es_result['search']
+    search_mappings = search_details['mapping']
+    assert len(search_mappings) > 0
+
+
 def test_search_aggregates(session):
     search_endpoint = "/find"
     limit = 0
