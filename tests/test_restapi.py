@@ -516,7 +516,7 @@ def test_search_indexing(session):
     assert len(es_result['items']) == num_items_before + 1
 
     aggregates = es_result['stats']['sliceByDimension']
-    assert len(aggregates) == 1
+    assert len(aggregates) == 2
 
     type_aggregate = aggregates['@type']
     observations = type_aggregate['observation']
