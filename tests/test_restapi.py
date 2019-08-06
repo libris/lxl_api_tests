@@ -1,5 +1,5 @@
 from restapi import *
-import sys # sys.stderr.write('hej\n')
+import sys
 
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
@@ -546,7 +546,127 @@ def test_search_indexing(session):
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    
+
+def test_search_cannot_use_rev_and_q(session):
+    search_endpoint = "/find"
+    query_params = {'q': 'mumintrollet',
+                    '_rev': 'id'}
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params)
+    assert result.status_code == 400
+
+
+def test_search_rev(session):
+    rev_id = 'https://id.kb.se/language/swe'
+
+    def get_items(lens):
+        limit = 100
+
+        search_endpoint = "/find"
+        query_params = {
+            '_rev': rev_id,
+            '_limit': limit,
+            '_lens': lens
+        }
+
+        result = session.get(ROOT_URL + search_endpoint,
+                             params=query_params)
+
+        assert result.status_code == 200
+
+        json_body = result.json()
+        items = json_body['items']
+
+        assert json_body['totalItems'] > 400
+        assert json_body['itemsPerPage'] == limit
+        assert len(items) == limit
+        assert "_lens=%s" % lens in json_body['@id']
+
+        return items
+
+    card_only = ['https://id.kb.se/term/rda/Volume',
+                 'https://id.kb.se/term/rda/Unmediated']
+
+    items = get_items('cards')
+    assert all([has_reference(item, rev_id) for item in items])
+    assert any([has_reference(item, c) for item in items for c in card_only])
+
+    items = get_items('chips')
+    assert all([has_reference(item, rev_id) for item in items])
+    assert all([not has_reference(item, c) for item in items for c in card_only])
+
+
+def test_search_rev_default_lens(session):
+    search_endpoint = "/find"
+    query_params = {
+        '_rev': 'abc',
+    }
+
+    result = session.get(ROOT_URL + search_endpoint,
+                         params=query_params)
+
+    assert "_lens=cards" in result.json()['@id']
+
+
+@pytest.mark.parametrize("limit", [30, 20])
+def test_search_rev_navigation(limit, session):
+    def fetch(url):
+        result = session.get(ROOT_URL + url)
+        return result.json()
+
+    def next(body):
+        return fetch(body['next']['@id'])
+
+    def prev(body):
+        return fetch(body['previous']['@id'])
+
+    query = '/find?_rev=https://id.kb.se/language/swe&_limit=%s'
+    first = fetch(query % limit)
+    total = first['totalItems']
+    all_items = fetch(query % total)['items']
+
+    assert total > limit
+    assert first['@id'] == first['first']['@id']
+    assert first['itemsPerPage'] == limit
+
+    num_steps = total / limit
+    num_steps = num_steps -1 if total % limit == 0 else num_steps
+
+    # forward to last
+    offset = 0
+    page = first
+    items = page['items']
+    for i in range(num_steps):
+        page = next(page)
+        items = items + page['items']
+        offset = offset + limit
+        assert page['itemOffset'] == offset
+        assert page['itemsPerPage'] == limit
+        assert first['last'] == page['last']
+        assert first['first'] == page['first']
+
+    assert page['@id'] == page['last']['@id']
+    assert items == all_items
+
+    # backward to first
+    items = page['items']
+    for i in range(num_steps):
+        page = prev(page)
+        items = page['items'] + items
+
+    assert page == first
+    assert items == all_items
+
+
+def has_reference(x, ref, key=None):
+    if isinstance(x, dict):
+        return any([has_reference(x[key], ref, key=key) for key in x])
+    elif isinstance(x, list):
+        return any([has_reference(val, ref) for val in x])
+    else:
+        return key == "@id" and x == ref
+
 
 def _assert_link_header(link_header, expected):
     link_headers = link_header.split(',')
