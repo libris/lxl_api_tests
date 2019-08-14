@@ -547,25 +547,25 @@ def test_search_indexing(session):
     assert result.status_code == 410
 
 
-def test_search_cannot_use_rev_and_q(session):
+def test_search_cannot_use_o_and_q(session):
     search_endpoint = "/find"
     query_params = {'q': 'mumintrollet',
-                    '_rev': 'id'}
+                    'o': 'id'}
 
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params)
     assert result.status_code == 400
 
 
-def test_search_rev(session):
-    rev_id = 'https://id.kb.se/language/swe'
+def test_search_o(session):
+    o_id = 'https://id.kb.se/language/swe'
 
     def get_items(lens):
         limit = 100
 
         search_endpoint = "/find"
         query_params = {
-            '_rev': rev_id,
+            'o': o_id,
             '_limit': limit,
             '_lens': lens
         }
@@ -589,18 +589,18 @@ def test_search_rev(session):
                  'https://id.kb.se/term/rda/Unmediated']
 
     items = get_items('cards')
-    assert all([has_reference(item, rev_id) for item in items])
+    assert all([has_reference(item, o_id) for item in items])
     assert any([has_reference(item, c) for item in items for c in card_only])
 
     items = get_items('chips')
-    assert all([has_reference(item, rev_id) for item in items])
+    assert all([has_reference(item, o_id) for item in items])
     assert all([not has_reference(item, c) for item in items for c in card_only])
 
 
-def test_search_rev_default_lens(session):
+def test_search_o_default_lens(session):
     search_endpoint = "/find"
     query_params = {
-        '_rev': 'abc',
+        'o': 'abc',
     }
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -610,7 +610,7 @@ def test_search_rev_default_lens(session):
 
 
 @pytest.mark.parametrize("limit", [30, 20])
-def test_search_rev_navigation(limit, session):
+def test_search_o_navigation(limit, session):
     def fetch(url):
         result = session.get(ROOT_URL + url)
         return result.json()
@@ -621,7 +621,7 @@ def test_search_rev_navigation(limit, session):
     def prev(body):
         return fetch(body['previous']['@id'])
 
-    query = '/find?_rev=https://id.kb.se/language/swe&_limit=%s'
+    query = '/find?o=https://id.kb.se/language/swe&_limit=%s'
     first = fetch(query % limit)
     total = first['totalItems']
     all_items = fetch(query % total)['items']
