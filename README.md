@@ -15,6 +15,11 @@ We use environment variables to configure which system to authenticate against
 The last three default to localhost, while the first three need to be set
 before executing the tests.
 
+To be able to run without https against e.g. localhost, set:
+`export OAUTHLIB_INSECURE_TRANSPORT=1`
+
+Use `LXLTESTING_LOGIN_URL=https://login.libris.kb.se` for login.libris.kb.se
+
 ## Running
 
 ```bash
