@@ -1,5 +1,6 @@
 from restapi import *
 import sys
+import re
 
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
@@ -283,6 +284,91 @@ def test_get_bib_version(session):
     assert result.status_code == 410
 
     _trigger_elastic_refresh(session)
+
+
+@pytest.mark.parametrize('view', ['/data'])
+@pytest.mark.parametrize('suffix', ['', '.jsonld', '.json'])
+@pytest.mark.parametrize('framed', [True, False])
+@pytest.mark.parametrize('embellished', [True, False])
+def test_get_view_with_parameters(session, view, suffix, framed, embellished):
+    get_with_parameters(session, view + suffix, framed, embellished)
+
+
+@pytest.mark.parametrize('framed', [True, False])
+@pytest.mark.parametrize('embellished', [True, False])
+def test_get_resource_with_parameters(session, framed, embellished):
+    get_with_parameters(session, '', framed, embellished)
+
+
+def get_with_parameters(session, view, framed, embellished):
+    def is_framed(json):
+        if '@id' not in json and '@graph' not in json:
+            raise Exception('could not parse %s ' % json)
+        return '@id' in json
+
+    def is_embellished(json):
+        if is_framed(json):
+            return len(json['instanceOf']['illustrativeContent']) > 1
+        else:
+            return len(json['@graph']) > 3
+
+    bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
+    url = ROOT_URL + '/' + bib_id + view
+
+    query = '?framed=%s&embellished=%s' % (framed, embellished)
+
+    result = session.get(url + query)
+
+    assert result.status_code == 200
+    json = result.json()
+    assert is_framed(json) == framed
+    assert is_embellished(json) == embellished
+
+
+@pytest.mark.parametrize('view', ['', '/data', '/data.json', '/data.jsonld'])
+@pytest.mark.parametrize('lens', [None, 'chip', 'card'])
+def test_get_with_lens(session, view, lens):
+    def check_lens(json):
+        if 'hasNote' in json:
+            return None
+        if 'hasDimensions' in json:
+            return 'card'
+        if 'hasTitle' in json:
+            return 'chip'
+        raise Exception('could not identify lens')
+
+    bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
+    url = ROOT_URL + '/' + bib_id + view
+
+    if lens:
+        url = url + '?lens=' + lens
+    else:
+        url = url + '?framed=true'
+
+    result = session.get(url)
+
+    assert result.status_code == 200
+    json = result.json()
+    assert check_lens(json) == lens
+
+
+cached_ids = {}
+def find_id(session, q):
+    if q in cached_ids:
+        return cached_ids[q]
+
+    url = ROOT_URL + '/find?q=' + q
+
+    result = session.get(url)
+    assert result.status_code == 200
+    json = result.json()
+    assert len(json['items']) == 1
+
+    the_id = json['items'][0]['@id']
+    the_id = re.sub('#.*', '', the_id)
+    cached_ids[q] = the_id
+
+    return the_id
 
 
 def test_search(session):
