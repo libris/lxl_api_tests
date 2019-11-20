@@ -308,7 +308,7 @@ def get_with_parameters(session, view, framed, embellished):
 
     def is_embellished(json):
         if is_framed(json):
-            return len(json['mainEntity']['instanceOf']['illustrativeContent']) > 1
+            return len(json['instanceOf']['illustrativeContent']) > 1
         else:
             return len(json['@graph']) > 3
 
@@ -329,11 +329,11 @@ def get_with_parameters(session, view, framed, embellished):
 @pytest.mark.parametrize('lens', [None, 'chip', 'card'])
 def test_get_with_lens(session, view, lens):
     def check_lens(json):
-        if 'mainEntity' in json:
+        if 'hasNote' in json:
             return None
-        if 'modified' in json:
+        if 'hasDimensions' in json:
             return 'card'
-        if 'controlNumber' in json:
+        if 'hasTitle' in json:
             return 'chip'
         raise Exception('could not identify lens')
 
