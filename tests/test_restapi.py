@@ -329,11 +329,11 @@ def get_with_parameters(session, view, framed, embellished):
 @pytest.mark.parametrize('lens', [None, 'chip', 'card'])
 def test_get_with_lens(session, view, lens):
     def check_lens(json):
-        if 'mainEntity' in json:
-            return None
-        if 'modified' in json:
-            return 'card'
         if 'controlNumber' in json:
+            return None
+        if 'hasDimensions' in json:
+            return 'card'
+        if 'hasTitle' in json:
             return 'chip'
         raise Exception('could not identify lens')
 
