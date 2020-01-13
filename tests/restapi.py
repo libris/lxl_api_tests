@@ -149,6 +149,8 @@ def put_post(session, thing_id, **kwargs):
 
 def delete_post(session, thing_id, **kwargs):
     headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
+    # Ensure records are present in the index before trying to delete them
+    session.post(ES_REFRESH_URL)
     return session.delete(thing_id, headers=headers, **kwargs)
 
 
