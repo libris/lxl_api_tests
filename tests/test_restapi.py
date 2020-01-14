@@ -1,6 +1,31 @@
 from restapi import *
-import sys
 import re
+
+
+@pytest.fixture()
+def load_bib(session, request):
+
+    bib_ids = []
+
+    def load_bib(bib_file=BIB_FILE):
+        bib_id = create_bib(session=session, bib_file=bib_file)
+        bib_ids.append(bib_id)
+        _trigger_elastic_refresh(session)
+        return bib_id
+
+    # Cleanup
+    def fin():
+        for bib_id in bib_ids:
+            result = delete_post(session, bib_id)
+            assert result.status_code == 204
+
+            result = session.get(bib_id)
+            assert result.status_code == 410
+
+    request.addfinalizer(fin)
+
+    return load_bib
+
 
 def test_update_and_delete_holding(session):
     holding_id = create_holding(session)
@@ -566,6 +591,25 @@ def test_search_isbn(session):
 
     es_result = result.json()
     assert len(es_result['items']) == 0
+
+
+@pytest.mark.parametrize('bib_file, expected', [(BIB_FILE_ISBN10, 9789172530997),
+                                                (BIB_FILE_ISBN13, 9172530995)])
+def test_isbn_10_or_13_should_index_corresponding_form(session, bib_file, expected, load_bib):
+    # Given
+    load_bib(bib_file)
+
+    # When
+    query_params = {'identifiedBy.value': expected,
+                    'identifiedBy.@type': 'ISBN'}
+    search_endpoint = "/find"
+    result = session.get(ROOT_URL + search_endpoint,
+                          params=query_params)
+    assert result.status_code == 200
+
+    # Then:
+    es_result = result.json()
+    assert len(es_result['items']) == 1
 
 
 def test_search_indexing(session):

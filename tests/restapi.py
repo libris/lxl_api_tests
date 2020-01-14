@@ -1,3 +1,5 @@
+from random import randint
+
 from lxml import html
 from oauthlib.oauth2 import MobileApplicationClient
 from requests_oauthlib import OAuth2Session
@@ -11,6 +13,8 @@ import requests
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
 BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
+BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
+BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
 DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
 DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
@@ -138,8 +142,8 @@ def create_holding(session, thing_id=None, item_of=None):
     return _do_post(session, HOLD_FILE, thing_id, item_of)
 
 
-def create_bib(session, thing_id=None):
-    return _do_post(session, BIB_FILE, thing_id, None)
+def create_bib(session, thing_id=None, bib_file=BIB_FILE):
+    return _do_post(session, bib_file, thing_id, None)
 
 
 def put_post(session, thing_id, **kwargs):
@@ -154,9 +158,6 @@ def delete_post(session, thing_id, **kwargs):
     return session.delete(thing_id, headers=headers, **kwargs)
 
 
-fake_voyager_id = int(999999)
-
-
 def _do_post(session, filename, thing_id, item_of):
     json_payload = _read_payload(filename)
     if thing_id:
@@ -169,10 +170,8 @@ def _do_post(session, filename, thing_id, item_of):
         json_payload = json_payload.replace(ITEM_OF_TMP,
                                             ITEM_OF_DEFAULT)
 
-    global fake_voyager_id
-    fake_voyager_id = fake_voyager_id + 1
     json_payload = json_payload.replace("/bib/999999",
-                                        "/bib/" + str(fake_voyager_id))
+                                        "/bib/" + str(randint(0, 9999999)))
 
     headers = {'Content-Type': 'application/ld+json',
                XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
