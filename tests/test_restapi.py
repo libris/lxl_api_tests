@@ -603,8 +603,7 @@ def test_isbn_10_or_13_should_index_corresponding_form(session, bib_file, expect
     query_params = {'identifiedBy.value': expected,
                     'identifiedBy.@type': 'ISBN'}
     search_endpoint = "/find"
-    result = session.get(ROOT_URL + search_endpoint,
-                          params=query_params)
+    result = session.get(ROOT_URL + search_endpoint, params=query_params)
     assert result.status_code == 200
 
     # Then:

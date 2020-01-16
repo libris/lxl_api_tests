@@ -1,4 +1,4 @@
-from random import randint
+from random import randrange
 
 from lxml import html
 from oauthlib.oauth2 import MobileApplicationClient
@@ -158,6 +158,9 @@ def delete_post(session, thing_id, **kwargs):
     return session.delete(thing_id, headers=headers, **kwargs)
 
 
+test_ids = [12341234]
+
+
 def _do_post(session, filename, thing_id, item_of):
     json_payload = _read_payload(filename)
     if thing_id:
@@ -170,8 +173,10 @@ def _do_post(session, filename, thing_id, item_of):
         json_payload = json_payload.replace(ITEM_OF_TMP,
                                             ITEM_OF_DEFAULT)
 
+    test_id = max(test_ids) + randrange(100000)
+
     json_payload = json_payload.replace("/bib/999999",
-                                        "/bib/" + str(randint(0, 9999999)))
+                                        "/bib/" + str(test_id))
 
     headers = {'Content-Type': 'application/ld+json',
                XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
@@ -180,6 +185,9 @@ def _do_post(session, filename, thing_id, item_of):
                           headers=headers)
     assert result.status_code == 201
     location = result.headers['Location']
+
+    test_ids.append(test_id)
+
     return location
 
 
