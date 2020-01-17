@@ -192,7 +192,7 @@ def test_search_urnnbn(apix_session):
     result = apix_session.get(APIX_URL +
                               '0.1/cat/libris/search?urnnbn=(OCoLC)964671537')
     assert result.status_code == 200
-    assert 'Orig:s titel: Denna dagen, ett liv' in result.text
+    assert 'Denne dag, et liv.' in result.text
 
 
 def _read_file(filename):
