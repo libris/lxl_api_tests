@@ -687,10 +687,10 @@ def test_search_cannot_use_o_and_q(session):
 
 
 def test_search_o(session):
-    o_id = 'https://id.kb.se/language/swe'
+    o_id = 'https://id.kb.se/language/ger'
 
     def get_items(lens):
-        limit = 100
+        limit = 50
 
         search_endpoint = "/find"
         query_params = {
@@ -707,7 +707,7 @@ def test_search_o(session):
         json_body = result.json()
         items = json_body['items']
 
-        assert json_body['totalItems'] > 400
+        assert json_body['totalItems'] > 50
         assert json_body['itemsPerPage'] == limit
         assert len(items) == limit
         assert "_lens=%s" % lens in json_body['@id']
@@ -750,7 +750,7 @@ def test_search_o_navigation(limit, session):
     def prev(body):
         return fetch(body['previous']['@id'])
 
-    query = '/find?o=https://id.kb.se/language/swe&_limit=%s'
+    query = '/find?o=https://id.kb.se/language/ger&_limit=%s'
     first = fetch(query % limit)
     total = first['totalItems']
     all_items = fetch(query % total)['items']
