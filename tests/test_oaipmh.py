@@ -83,7 +83,7 @@ def test_holding_for_sigel_is_exported_on_bib_datestamp_updated(session, load_ho
     assert '<identifier>{}</identifier>'.format(holding_id) in result.text
     assert '<setSpec>hold</setSpec>' in result.text
 
-
+@pytest.mark.skip(reason="broken on DEV")
 def test_bib_expanded_includes_auth_information(session):
     bibexample = ITEM_OF_DEFAULT
     bibexample_auth_record_id = 'wt79bh6f2j46dtr'
@@ -98,7 +98,7 @@ def test_bib_expanded_includes_auth_information(session):
 
     assert bibexample_auth_record_id in result.text
 
-
+@pytest.mark.skip(reason="broken on DEV")
 def test_bib_includehold_includes_holdings(session):
     bibexample = ITEM_OF_DEFAULT
     bibexample_hold_id_h = 'mrxbsl2s5tn09x3'
