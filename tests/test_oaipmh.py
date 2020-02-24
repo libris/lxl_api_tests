@@ -1,62 +1,9 @@
-from restapi import *
+from conf_util import *
 import os
 import requests
 from datetime import datetime, timedelta
 
 OAIPMH_URL = os.environ.get('LXLTESTING_OAIPMH_URL')
-
-
-@pytest.fixture(scope='module')
-def load_bib(session, request):
-    bib_ids = []
-
-    def load_bib(bib_file=BIB_FILE):
-        bib_id = create_bib(session=session, bib_file=bib_file)
-        bib_ids.append(bib_id)
-        _trigger_elastic_refresh(session)
-        return bib_id
-
-    # Cleanup
-    def fin():
-        for bib_id in bib_ids:
-            result = delete_post(session, bib_id)
-            assert result.status_code == 204
-
-            result = session.get(bib_id)
-            assert result.status_code == 410
-
-    request.addfinalizer(fin)
-
-    return load_bib
-
-
-@pytest.fixture()
-def load_holding(session, request):
-    holding_ids = []
-
-    def load_holding(item_of=None):
-        holding_id = create_holding(session=session, item_of=item_of)
-        holding_ids.append(holding_id)
-        _trigger_elastic_refresh(session)
-        return holding_id
-
-    # Cleanup
-    def fin():
-        for holding_id in holding_ids:
-            result = delete_post(session, holding_id)
-            assert result.status_code == 204
-
-            result = session.get(holding_id)
-            assert result.status_code == 410
-
-    request.addfinalizer(fin)
-
-    return load_holding
-
-
-def _trigger_elastic_refresh(session):
-    result = session.post(ES_REFRESH_URL)
-    assert result.status_code == 200
 
 
 def test_get_record(session, load_holding):
@@ -69,8 +16,8 @@ def test_get_record(session, load_holding):
     assert '<identifier>{}</identifier>'.format(holding_id) in result.text
 
 
-def test_holding_for_sigel_is_exported_on_bib_datestamp_updated(session, load_holding, load_bib):
-    bib_id = load_bib()
+def test_holding_for_sigel_is_exported_on_bib_datestamp_updated(session, load_holding, load_bib_for_module):
+    bib_id = load_bib_for_module()
     holding_id = load_holding(item_of=bib_id)
 
     from_time = (datetime.utcnow() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -82,6 +29,7 @@ def test_holding_for_sigel_is_exported_on_bib_datestamp_updated(session, load_ho
 
     assert '<identifier>{}</identifier>'.format(holding_id) in result.text
     assert '<setSpec>hold</setSpec>' in result.text
+
 
 @pytest.mark.skip(reason="broken on DEV")
 def test_bib_expanded_includes_auth_information(session):
