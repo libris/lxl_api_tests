@@ -98,19 +98,16 @@ def test_bib_expanded_includes_auth_information(session):
 
     assert bibexample_auth_record_id in result.text
 
-@pytest.mark.skip(reason="broken on DEV")
-def test_bib_includehold_includes_holdings(session):
+
+def test_bib_includehold_includes_holdings(session, load_holding):
     bibexample = ITEM_OF_DEFAULT
-    bibexample_hold_id_h = 'mrxbsl2s5tn09x3'
-    bibexample_hold_id_jon = 'nszctm3t34v26t3'
-    bibexample_hold_id_krh = 'pt0dvn4v0c9803t'
+    holding_id = load_holding(item_of=ITEM_OF_DEFAULT)
 
     result = requests.session().get(OAIPMH_URL +
                                     '?verb=GetRecord&metadataPrefix=marcxml_includehold&identifier={}'.format(bibexample))
 
-    assert bibexample_hold_id_h  in result.text
-    assert bibexample_hold_id_jon  in result.text
-    assert bibexample_hold_id_krh  in result.text
+    short_hold_id = holding_id.rsplit('/', 1)[0]
+    assert short_hold_id in result.text
 
 
 def test_identify_should_contain_repository_name(session):
