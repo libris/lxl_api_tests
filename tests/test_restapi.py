@@ -1,30 +1,5 @@
-from restapi import *
+from conf_util import *
 import re
-
-
-@pytest.fixture()
-def load_bib(session, request):
-
-    bib_ids = []
-
-    def load_bib(bib_file=BIB_FILE):
-        bib_id = create_bib(session=session, bib_file=bib_file)
-        bib_ids.append(bib_id)
-        _trigger_elastic_refresh(session)
-        return bib_id
-
-    # Cleanup
-    def fin():
-        for bib_id in bib_ids:
-            result = delete_post(session, bib_id)
-            assert result.status_code == 204
-
-            result = session.get(bib_id)
-            assert result.status_code == 410
-
-    request.addfinalizer(fin)
-
-    return load_bib
 
 
 def test_update_and_delete_holding(session):
@@ -39,18 +14,18 @@ def test_update_and_delete_holding(session):
     result = update_holding(session, holding_id, payload, etag)
     assert result.status_code == 204
 
-    _trigger_elastic_refresh(session)
-    result = delete_post(session, holding_id)
+    trigger_elastic_refresh(session)
+    result = delete_record(session, holding_id)
 
     assert result.status_code == 204
 
     result = session.get(holding_id)
     assert result.status_code == 410
 
-    result = delete_post(session, holding_id)
+    result = delete_record(session, holding_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_get_bib(session):
@@ -94,7 +69,7 @@ def test_get_bib(session):
     assert location == expected_thing_location
 
     # Cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -109,7 +84,7 @@ def test_get_bib(session):
     result = session.get(ROOT_URL + "/" + thing_sameas)
     assert result.status_code == 404
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     
 # Create bib A, and holding B depending on A.
@@ -133,18 +108,18 @@ def test_delete_dependency(session):
     hold_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
 
     # Delete A (should be blocked due to dependency)
-    result = delete_post(session, ROOT_URL + "/" + bib_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + bib_id,
+                           allow_redirects=False)
     assert result.status_code == 403
 
     # Delete B (should be ok)
-    result = delete_post(session, ROOT_URL + "/" + hold_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + hold_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     # Delete A (should now be ok as dependency is gone)
-    result = delete_post(session, ROOT_URL + "/" + bib_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + bib_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(hold_id)
@@ -153,7 +128,7 @@ def test_delete_dependency(session):
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_delete_bib(session):
@@ -173,30 +148,30 @@ def test_delete_bib(session):
     expected_thing_location = thing_id
 
     # Record.sameAs
-    result = delete_post(session, ROOT_URL + "/" + record_sameas,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + record_sameas,
+                           allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = delete_post(session, ROOT_URL + "/" + thing_sameas,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + thing_sameas,
+                           allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_thing_location
 
     # Thing.@id
-    result = delete_post(session, ROOT_URL + "/" + thing_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + thing_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_update_bib(session):
@@ -245,13 +220,13 @@ def test_update_bib(session):
     assert result.status_code == 204
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_get_bib_version(session):
@@ -293,7 +268,7 @@ def test_get_bib_version(session):
     assert new_json['@graph'][1]['dimensions'] == '18 x 230 cm'
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -308,7 +283,7 @@ def test_get_bib_version(session):
     result = session.get(bib_id + '?version=2')
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 @pytest.mark.parametrize('view', ['/data'])
@@ -635,7 +610,7 @@ def test_search_indexing(session):
 
     # after create - one hit
     holding_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params)
@@ -653,9 +628,9 @@ def test_search_indexing(session):
     assert observations[0]['totalItems'] == num_items_before + 1
 
     # after delete - no hits
-    result = delete_post(session, holding_id)
+    result = delete_record(session, holding_id)
     assert result.status_code == 204
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     result = session.get(holding_id)
     assert result.status_code == 410
@@ -669,7 +644,7 @@ def test_search_indexing(session):
     assert not 'stats' in es_result
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -808,8 +783,3 @@ def is_type_instance(doc):
 
 def is_type_item(doc):
     return doc['@type'] == 'Item'
-
-
-def _trigger_elastic_refresh(session):
-    result = session.post(ES_REFRESH_URL)
-    assert result.status_code == 200
