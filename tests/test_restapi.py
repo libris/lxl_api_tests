@@ -651,16 +651,6 @@ def test_search_indexing(session):
     assert result.status_code == 410
 
 
-def test_search_cannot_use_o_and_q(session):
-    search_endpoint = "/find"
-    query_params = {'q': 'mumintrollet',
-                    'o': 'id'}
-
-    result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params)
-    assert result.status_code == 400
-
-
 def test_search_o(session):
     o_id = 'https://id.kb.se/language/ger'
 
@@ -699,18 +689,6 @@ def test_search_o(session):
     items = get_items('chips')
     assert all([has_reference(item, o_id) for item in items])
     assert all([not has_reference(item, c) for item in items for c in card_only])
-
-
-def test_search_o_default_lens(session):
-    search_endpoint = "/find"
-    query_params = {
-        'o': 'abc',
-    }
-
-    result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params)
-
-    assert "_lens=cards" in result.json()['@id']
 
 
 @pytest.mark.parametrize("limit", [30, 20])
