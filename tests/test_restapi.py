@@ -672,7 +672,7 @@ def test_search_o(session):
         json_body = result.json()
         items = json_body['items']
 
-        assert json_body['totalItems'] > 50
+        assert json_body['totalItems'] > 45
         assert json_body['itemsPerPage'] == limit
         assert len(items) > 0 # TODO: what is correct? can be less than limit
         assert "_lens=%s" % lens in json_body['@id']
