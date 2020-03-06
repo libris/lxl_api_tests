@@ -18,7 +18,13 @@
           "mainTitle": "DATE_TEST_TITLE"
         }
       ],
-      "editionStatement": "_:TMP_EDITION"
+      "editionStatement": "_:TMP_EDITION",
+      "publication": [
+        {
+          "@type": "PrimaryPublication",
+          "year": "_:TMP_YEAR"
+        }
+      ]
     }
   ]
 }

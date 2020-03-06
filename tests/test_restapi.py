@@ -654,9 +654,10 @@ def test_search_indexing(session):
 def test_search_date(session, load_bib):
     import datetime
 
-    def create(generationDate, edition):
+    def create(generationDate, pubYear, edition):
         load_bib(resource('bib_date.jsonld'), {'_:TMP_DATE': generationDate,
-                                               '_:TMP_EDITION': edition})
+                                               '_:TMP_EDITION': edition,
+                                               '_:TMP_YEAR': pubYear})
 
     def search(params):
         query_params = {'hasTitle.mainTitle': 'DATE_TEST_TITLE',
@@ -667,10 +668,11 @@ def test_search_date(session, load_bib):
         return [i['editionStatement'] for i in result.json()['items']]
         
     # Given
-    create('1983-12-07T11:12:00Z', 'A') # W49
-    create('1990-01-02T10:10:10Z', 'B') # W01
-    create('1992-01-02T10:10:10Z', 'C') # W01
-    create('1995-10-10T09:09:09Z', 'D') # W41
+    # meta.generationDate, publication.year, editionStatement
+    create('1983-12-07T11:12:00Z', '1968', 'A') # W49
+    create('1990-01-02T10:10:10Z', '1971', 'B') # W01
+    create('1992-01-02T10:10:10Z', '1975', 'C') # W01
+    create('1995-10-10T09:09:09Z', '1980', 'D') # W41
         
     # Then:
     
@@ -711,6 +713,10 @@ def test_search_date(session, load_bib):
         'A', 'B', 'C', 'D']
     assert search({'min-meta.generationDate': ['1982', '1989'], 
                    'max-meta.generationDate': ['1984', '1991']}) == ['A', 'B']
+
+    # Works on numeric fields, e.g. publication year
+    assert search({'min-publication.year': '1970',
+                   'maxEx-publication.year': '1980'}) == ['B', 'C']
 
 
 def test_search_date_invalid(session, load_bib):
