@@ -1,0 +1,24 @@
+{
+  "@context": "/context.jsonld",
+  "@graph": [
+    {
+      "@id": "_:TMPID",
+      "@type": "Record",
+      "mainEntity": {
+        "@id": "_:TMPID#it"
+      },
+      "generationDate": "_:TMP_DATE"
+    },
+    {
+      "@id": "_:TMPID#it",
+      "@type": "Instance",
+      "hasTitle": [
+        {
+          "@type": "Title",
+          "mainTitle": "DATE_TEST_TITLE"
+        }
+      ],
+      "editionStatement": "_:TMP_EDITION"
+    }
+  ]
+}
