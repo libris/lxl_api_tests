@@ -125,8 +125,9 @@ def load_bib_for_module(session, request):
 def load(session, request):
     bib_ids = []
 
-    def load_bib(bib_file=BIB_FILE):
-        bib_id = create_bib(session=session, bib_file=bib_file)
+    def load_bib(bib_file=BIB_FILE, replacements=None):
+        bib_id = create_bib(session=session, bib_file=bib_file,
+                            replacements=replacements)
         bib_ids.append(bib_id)
         trigger_elastic_refresh(session)
         return bib_id
@@ -198,8 +199,8 @@ def create_holding(session, thing_id=None, item_of=None):
     return _do_post(session, HOLD_FILE, thing_id, item_of)
 
 
-def create_bib(session, thing_id=None, bib_file=BIB_FILE):
-    return _do_post(session, bib_file, thing_id, None)
+def create_bib(session, thing_id=None, bib_file=BIB_FILE, replacements=None):
+    return _do_post(session, bib_file, thing_id, None, replacements)
 
 
 def put_post(session, thing_id, **kwargs):
@@ -217,7 +218,7 @@ def delete_record(session, thing_id, **kwargs):
 test_ids = [12341234]
 
 
-def _do_post(session, filename, thing_id, item_of):
+def _do_post(session, filename, thing_id, item_of, replacements=None):
     json_payload = _read_payload(filename)
     if thing_id:
         json_payload = json_payload.replace(THING_ID_PLACEHOLDER,
@@ -228,6 +229,10 @@ def _do_post(session, filename, thing_id, item_of):
     else:
         json_payload = json_payload.replace(ITEM_OF_TMP,
                                             ITEM_OF_DEFAULT)
+
+    if replacements:
+        for key in replacements:
+            json_payload = json_payload.replace(key, replacements[key])
 
     test_id = max(test_ids) + randrange(100000)
 
@@ -266,3 +271,6 @@ def trigger_elastic_refresh(session):
     result = session.post(ES_REFRESH_URL)
     assert result.status_code == 200
 
+
+def resource(name):
+    return os.path.join(ROOT_DIR, "resources", name)
