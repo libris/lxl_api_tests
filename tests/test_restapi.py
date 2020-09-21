@@ -460,13 +460,13 @@ def test_search_aggregates(session):
 def test_search_filtering(session):
     search_endpoint = "/find"
     limit = 2000
-    only_instance = ['Manuscript']
-    instance_and_type = ['Manuscript', 'MovingImage']
+    single_type = ['Manuscript']
+    many_types = ['Manuscript', 'Map', 'VideoRecording']
     bad_type = ['NonExistantType']
 
     # single type
     query_params = {'q': '*',
-                    '@type': only_instance,
+                    '@type': single_type,
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -474,11 +474,12 @@ def test_search_filtering(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert all(is_type_instance(item) for item in es_result['items'])
+    assert(len(es_result['items']) != 0)
+    assert all(item['@type'] == single_type[0] for item in es_result['items'])
 
-    # instance and type
+    # many types
     query_params = {'q': '*',
-                    '@type': instance_and_type,
+                    '@type': many_types,
                     '_limit': limit}
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -486,7 +487,8 @@ def test_search_filtering(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert all(is_type_instance(item) or is_type_item(item)
+    assert(len(es_result['items']) != 0)
+    assert all(item['@type'] in many_types
                for item in es_result['items'])
 
     # bad type
@@ -501,6 +503,44 @@ def test_search_filtering(session):
     es_result = result.json()
     assert len(es_result['items']) == 0
 
+
+def test_search_with_or_count(session):
+    # Given
+    search_endpoint = "/find"
+    limit = 2000
+
+    query_params_s = {'q': '*',
+                    '@type': ['SoundRecording'],
+                    '_limit': limit}
+    query_params_v = {'q': '*',
+                    '@type': ['VideoRecording'],
+                    '_limit': limit}
+    query_params_sv = {'q': '*',
+                    '@type': ['SoundRecording', 'VideoRecording'],
+                    '_limit': limit}
+
+    # When
+    result_s = session.get(ROOT_URL + search_endpoint,
+                         params=query_params_s)
+    result_v = session.get(ROOT_URL + search_endpoint,
+                           params=query_params_v)
+    result_sv = session.get(ROOT_URL + search_endpoint,
+                           params=query_params_sv)
+
+    # Then
+    assert result_s.status_code == 200
+    assert result_v.status_code == 200
+    assert result_sv.status_code == 200
+
+    es_result_s = result_s.json()
+    es_result_v = result_v.json()
+    es_result_sv = result_sv.json()
+
+    assert (len(es_result_s['items']) != 0)
+    assert (len(es_result_v['items']) != 0)
+    assert (len(es_result_sv['items']) != 0)
+
+    assert (len(es_result_s['items']) + len(es_result_v['items']) == len(es_result_sv['items']) )
 
 def test_search_limit(session):
     search_endpoint = "/find"
@@ -837,9 +877,6 @@ def _assert_link_header(link_header, expected):
     assert expected in link_headers
 
 
-def is_type_instance(doc):
-    return doc['@type'] == 'Instance'
-
-
-def is_type_item(doc):
-    return doc['@type'] == 'Item'
+def _trigger_elastic_refresh(session):
+    result = session.post(ES_REFRESH_URL)
+    assert result.status_code == 200
