@@ -1,30 +1,5 @@
-from restapi import *
+from conf_util import *
 import re
-
-
-@pytest.fixture()
-def load_bib(session, request):
-
-    bib_ids = []
-
-    def load_bib(bib_file=BIB_FILE):
-        bib_id = create_bib(session=session, bib_file=bib_file)
-        bib_ids.append(bib_id)
-        _trigger_elastic_refresh(session)
-        return bib_id
-
-    # Cleanup
-    def fin():
-        for bib_id in bib_ids:
-            result = delete_post(session, bib_id)
-            assert result.status_code == 204
-
-            result = session.get(bib_id)
-            assert result.status_code == 410
-
-    request.addfinalizer(fin)
-
-    return load_bib
 
 
 def test_update_and_delete_holding(session):
@@ -39,18 +14,18 @@ def test_update_and_delete_holding(session):
     result = update_holding(session, holding_id, payload, etag)
     assert result.status_code == 204
 
-    _trigger_elastic_refresh(session)
-    result = delete_post(session, holding_id)
+    trigger_elastic_refresh(session)
+    result = delete_record(session, holding_id)
 
     assert result.status_code == 204
 
     result = session.get(holding_id)
     assert result.status_code == 410
 
-    result = delete_post(session, holding_id)
+    result = delete_record(session, holding_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_get_bib(session):
@@ -94,7 +69,7 @@ def test_get_bib(session):
     assert location == expected_thing_location
 
     # Cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -109,7 +84,7 @@ def test_get_bib(session):
     result = session.get(ROOT_URL + "/" + thing_sameas)
     assert result.status_code == 404
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     
 # Create bib A, and holding B depending on A.
@@ -133,18 +108,18 @@ def test_delete_dependency(session):
     hold_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
 
     # Delete A (should be blocked due to dependency)
-    result = delete_post(session, ROOT_URL + "/" + bib_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + bib_id,
+                           allow_redirects=False)
     assert result.status_code == 403
 
     # Delete B (should be ok)
-    result = delete_post(session, ROOT_URL + "/" + hold_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + hold_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     # Delete A (should now be ok as dependency is gone)
-    result = delete_post(session, ROOT_URL + "/" + bib_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + bib_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(hold_id)
@@ -153,7 +128,7 @@ def test_delete_dependency(session):
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_delete_bib(session):
@@ -173,30 +148,30 @@ def test_delete_bib(session):
     expected_thing_location = thing_id
 
     # Record.sameAs
-    result = delete_post(session, ROOT_URL + "/" + record_sameas,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + record_sameas,
+                           allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = delete_post(session, ROOT_URL + "/" + thing_sameas,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + thing_sameas,
+                           allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_thing_location
 
     # Thing.@id
-    result = delete_post(session, ROOT_URL + "/" + thing_id,
-                         allow_redirects=False)
+    result = delete_record(session, ROOT_URL + "/" + thing_id,
+                           allow_redirects=False)
     assert result.status_code == 204
 
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_update_bib(session):
@@ -245,13 +220,13 @@ def test_update_bib(session):
     assert result.status_code == 204
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 def test_get_bib_version(session):
@@ -293,7 +268,7 @@ def test_get_bib_version(session):
     assert new_json['@graph'][1]['dimensions'] == '18 x 230 cm'
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
@@ -308,7 +283,7 @@ def test_get_bib_version(session):
     result = session.get(bib_id + '?version=2')
     assert result.status_code == 410
 
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
 
 @pytest.mark.parametrize('view', ['/data'])
@@ -675,7 +650,7 @@ def test_search_indexing(session):
 
     # after create - one hit
     holding_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
                          params=query_params)
@@ -693,9 +668,9 @@ def test_search_indexing(session):
     assert observations[0]['totalItems'] == num_items_before + 1
 
     # after delete - no hits
-    result = delete_post(session, holding_id)
+    result = delete_record(session, holding_id)
     assert result.status_code == 204
-    _trigger_elastic_refresh(session)
+    trigger_elastic_refresh(session)
 
     result = session.get(holding_id)
     assert result.status_code == 410
@@ -709,22 +684,94 @@ def test_search_indexing(session):
     assert not 'stats' in es_result
 
     # cleanup
-    result = delete_post(session, bib_id)
+    result = delete_record(session, bib_id)
     assert result.status_code == 204
 
     result = session.get(bib_id)
     assert result.status_code == 410
 
 
-def test_search_cannot_use_o_and_q(session):
-    search_endpoint = "/find"
-    query_params = {'q': 'mumintrollet',
-                    'o': 'id'}
+def test_search_date(session, load_bib):
+    import datetime
 
-    result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params)
-    assert result.status_code == 400
+    def create(generationDate, pubYear, edition):
+        load_bib(resource('bib_date.jsonld'), {'_:TMP_DATE': generationDate,
+                                               '_:TMP_EDITION': edition,
+                                               '_:TMP_YEAR': pubYear})
 
+    def search(params):
+        query_params = {'hasTitle.mainTitle': 'DATE_TEST_TITLE',
+                        '_sort': 'meta.generationDate'}
+        query_params.update(params)
+        result = session.get(ROOT_URL + '/find', params=query_params)
+        assert result.status_code == 200
+        return [i['editionStatement'] for i in result.json()['items']]
+        
+    # Given
+    # meta.generationDate, publication.year, editionStatement
+    create('1983-12-07T11:12:00Z', '1968', 'A') # W49
+    create('1990-01-02T10:10:10Z', '1971', 'B') # W01
+    create('1992-01-02T10:10:10Z', '1975', 'C') # W01
+    create('1995-10-10T09:09:09Z', '1980', 'D') # W41
+        
+    # Then:
+    
+    # Valid date formats
+    # (one hour offset UTC vs Europe/Stockholm)
+    assert search({'matches-meta.generationDate': '1983'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-12'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-12-07'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-12-07T12'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-12-07T12:12'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-12-07T12:12:00'}) == ['A']
+    assert search({'matches-meta.generationDate': '1983-W49'}) == ['A']
+
+    # Inclusive/exclusive
+    assert search({'min-meta.generationDate': '1983-12-07',
+                   'max-meta.generationDate': '1995-10-10'}) == [
+                       'A', 'B', 'C', 'D']
+    assert search({'minEx-meta.generationDate': '1983-12-07',
+                   'maxEx-meta.generationDate': '1995-10-10'}) == [
+                       'B', 'C']
+    assert search({'min-meta.generationDate': '1995-W41',
+                   'max-meta.generationDate': '1995-W42'}) == ['D']
+    assert search({'minEx-meta.generationDate': '1995-W41',
+                   'max-meta.generationDate': '1995-W42'}) == []
+
+    # Multiple fields - AND
+    year_now = datetime.datetime.now().year
+    assert search({'matches-meta.generationDate': '1983',
+                   'matches-meta.created': year_now}) == ['A']              
+    
+    assert search({'matches-meta.generationDate': '1983',
+                   'matches-meta.created': '2000'}) == []
+    
+    # Same field, multiple ranges - OR
+    assert search({'matches-meta.generationDate': ['1990-W01', '1992-W01']}) == ['B', 'C']
+    assert search({'matches-meta.generationDate': '1990-W01, 1992-W01'}) == ['B', 'C']
+    assert search({'matches-meta.generationDate': ['1983', '1990,1992', '1995']}) == [
+        'A', 'B', 'C', 'D']
+    assert search({'min-meta.generationDate': ['1982', '1989'], 
+                   'max-meta.generationDate': ['1984', '1991']}) == ['A', 'B']
+
+    # Works on numeric fields, e.g. publication year
+    assert search({'min-publication.year': '1970',
+                   'maxEx-publication.year': '1980'}) == ['B', 'C']
+
+
+def test_search_date_invalid(session, load_bib):
+    def search(params):
+        result = session.get(ROOT_URL + '/find', params=params)
+        assert result.status_code == 400
+
+    # bad date format
+    search({'matches-meta.created': '12345'})
+    search({'matches-meta.created': '2000-01-35'})
+
+    # mixing week and other format
+    search({'min-meta.created': '2000', 'max-meta.created': '2001-W05'})
+    search({'max-meta.created': '2000-05-05', 'min-meta.created': '2001-W05'})
+    
 
 def test_search_o(session):
     o_id = 'https://id.kb.se/language/ger'
@@ -747,7 +794,7 @@ def test_search_o(session):
         json_body = result.json()
         items = json_body['items']
 
-        assert json_body['totalItems'] > 50
+        assert json_body['totalItems'] > 45
         assert json_body['itemsPerPage'] == limit
         assert len(items) > 0 # TODO: what is correct? can be less than limit
         assert "_lens=%s" % lens in json_body['@id']
@@ -764,18 +811,6 @@ def test_search_o(session):
     items = get_items('chips')
     assert all([has_reference(item, o_id) for item in items])
     assert all([not has_reference(item, c) for item in items for c in card_only])
-
-
-def test_search_o_default_lens(session):
-    search_endpoint = "/find"
-    query_params = {
-        'o': 'abc',
-    }
-
-    result = session.get(ROOT_URL + search_endpoint,
-                         params=query_params)
-
-    assert "_lens=cards" in result.json()['@id']
 
 
 @pytest.mark.parametrize("limit", [30, 20])

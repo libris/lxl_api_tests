@@ -1,4 +1,4 @@
-from restapi import *
+from conf_util import *
 import os
 import sys # sys.stderr.write('hej\n')
 import xml.etree.ElementTree as ET

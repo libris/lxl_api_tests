@@ -112,6 +112,63 @@ def session():
     return session
 
 
+@pytest.fixture()
+def load_bib(session, request):
+    return load(session, request)
+
+
+@pytest.fixture(scope='module')
+def load_bib_for_module(session, request):
+    return load(session, request)
+
+
+def load(session, request):
+    bib_ids = []
+
+    def load_bib(bib_file=BIB_FILE, replacements=None):
+        bib_id = create_bib(session=session, bib_file=bib_file,
+                            replacements=replacements)
+        bib_ids.append(bib_id)
+        trigger_elastic_refresh(session)
+        return bib_id
+
+    # Cleanup
+    def fin():
+        for bib_id in bib_ids:
+            result = delete_record(session, bib_id)
+            assert result.status_code == 204
+
+            result = session.get(bib_id)
+            assert result.status_code == 410
+
+    request.addfinalizer(fin)
+    return load_bib
+
+
+@pytest.fixture()
+def load_holding(session, request):
+    holding_ids = []
+
+    def load_holding(item_of=None):
+        holding_id = create_holding(session=session, item_of=item_of)
+        holding_ids.append(holding_id)
+        trigger_elastic_refresh(session)
+        return holding_id
+
+    # Cleanup
+    def fin():
+        for holding_id in holding_ids:
+            result = delete_record(session, holding_id)
+            assert result.status_code == 204
+
+            result = session.get(holding_id)
+            assert result.status_code == 410
+
+    request.addfinalizer(fin)
+
+    return load_holding
+
+
 def _get_input_value(page, name):
     xpath = page.xpath("//input[@name='{0}']/@value".format(name))
     return list(set(xpath))[0]
@@ -142,8 +199,8 @@ def create_holding(session, thing_id=None, item_of=None):
     return _do_post(session, HOLD_FILE, thing_id, item_of)
 
 
-def create_bib(session, thing_id=None, bib_file=BIB_FILE):
-    return _do_post(session, bib_file, thing_id, None)
+def create_bib(session, thing_id=None, bib_file=BIB_FILE, replacements=None):
+    return _do_post(session, bib_file, thing_id, None, replacements)
 
 
 def put_post(session, thing_id, **kwargs):
@@ -151,7 +208,7 @@ def put_post(session, thing_id, **kwargs):
     return session.put(thing_id, headers=headers, **kwargs)
 
 
-def delete_post(session, thing_id, **kwargs):
+def delete_record(session, thing_id, **kwargs):
     headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
     # Ensure records are present in the index before trying to delete them
     session.post(ES_REFRESH_URL)
@@ -161,7 +218,7 @@ def delete_post(session, thing_id, **kwargs):
 test_ids = [12341234]
 
 
-def _do_post(session, filename, thing_id, item_of):
+def _do_post(session, filename, thing_id, item_of, replacements=None):
     json_payload = _read_payload(filename)
     if thing_id:
         json_payload = json_payload.replace(THING_ID_PLACEHOLDER,
@@ -172,6 +229,10 @@ def _do_post(session, filename, thing_id, item_of):
     else:
         json_payload = json_payload.replace(ITEM_OF_TMP,
                                             ITEM_OF_DEFAULT)
+
+    if replacements:
+        for key in replacements:
+            json_payload = json_payload.replace(key, replacements[key])
 
     test_id = max(test_ids) + randrange(100000)
 
@@ -204,3 +265,12 @@ def update_holding(session, holding_id, payload, etag):
                          data=json_payload,
                          headers=headers)
     return result
+
+
+def trigger_elastic_refresh(session):
+    result = session.post(ES_REFRESH_URL)
+    assert result.status_code == 200
+
+
+def resource(name):
+    return os.path.join(ROOT_DIR, "resources", name)
