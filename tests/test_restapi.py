@@ -863,6 +863,55 @@ def test_search_o_navigation(limit, session):
     assert items == all_items
 
 
+def test_search_or_prefix(session):
+    # Given
+    search_endpoint = "/find"
+    limit = 100
+    tove_jansson = ROOT_URL + "/wt79bh6f2j46dtr#it"
+    title = "Mumintrollet"
+
+    query_params_a = {
+        'instanceOf.contribution.agent.@id': tove_jansson,
+        '_limit': limit
+    }
+    query_params_b = {
+        'hasTitle.mainTitle': title,
+        '_limit': limit
+    }
+    query_params_a_or_b = {
+        'or-instanceOf.contribution.agent.@id': tove_jansson,
+        'or-hasTitle.mainTitle': title,
+        '_limit': limit
+    }
+
+    # When
+    result_a = session.get(ROOT_URL + search_endpoint,
+                         params=query_params_a)
+
+    result_b = session.get(ROOT_URL + search_endpoint,
+                         params=query_params_b)
+
+    result_a_or_b = session.get(ROOT_URL + search_endpoint,
+                         params=query_params_a_or_b)
+
+    # Then
+    assert result_a.status_code == 200
+    assert result_b.status_code == 200
+    assert result_a_or_b.status_code == 200
+
+    es_result_a = result_a.json()
+    es_result_b = result_b.json()
+    es_result_a_or_b = result_a_or_b.json()
+
+    assert (len(es_result_a['items']) != 0)
+    assert (len(es_result_b['items']) != 0)
+    assert (len(es_result_a_or_b['items']) != 0)
+
+    deduplicated_a_and_b = set(map(tuple, es_result_a['items'] + es_result_b['items']))
+
+    assert (len(deduplicated_a_and_b) == len(es_result_a_or_b['items']))
+
+
 def has_reference(x, ref, key=None):
     if isinstance(x, dict):
         return any([has_reference(x[key], ref, key=key) for key in x])
