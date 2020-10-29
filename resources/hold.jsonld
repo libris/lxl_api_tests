@@ -2,41 +2,30 @@
     "@graph": [
         {
             "@id": "_:TMPID",
-            "marc:holdingType": "marc:SinglePartItemHolding",
             "@type": "Record",
             "mainEntity": {
                 "@id": "_:TMPID#it"
-            },
-            "encodingLevel": "marc:HoldingsLevel4"
+            }
         },
         {
             "@id": "_:TMPID#it",
-            "marc:acquisitionStatus": "marc:CurrentlyReceived",
-            "marc:completeness": "marc:CompletenessType-1",
-            "marc:retentionPolicy": "marc:PermanentlyRetained",
             "heldBy": {
-                "notation": "Utb2",
-                "@id": "https://libris.kb.se/library/Utb2",
-                "@type": "Organization"
+                "@id": "https://libris.kb.se/library/Utb2"
             },
-            "marc:copyReport": "marc:Separate",
             "inventoryLevel": 1,
             "itemOf": {
                 "@id": "ITEM_OF_TMP"
             },
             "hasComponent": [
                 {
-                    "heldBy": [
+                    "heldBy":
                         {
-                            "notation": "Utb2",
-                            "@id": "https://libris.kb.se/library/Utb2",
-                            "@type": "Organization"
-                        }
-                    ],
+                            "@id": "https://libris.kb.se/library/Utb2"
+                        },
                     "availability": [
                       {
                         "@type": "ItemAvailability",
-                        "label": "EJ FJÄRRLÅN"
+                        "label": ["EJ FJÄRRLÅN"]
                       }
                     ],
                     "@type": "Item"

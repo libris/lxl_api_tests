@@ -4,10 +4,6 @@
     {
       "@id": "_:TMPID",
       "@type": "Record",
-      "assigner": {
-        "@type": "Organization",
-        "name": "NB"
-      },
       "mainEntity": {
         "@id": "_:TMPID#it"
       },
@@ -15,18 +11,11 @@
         {
           "@id": "http://libris.kb.se/bib/999999"
         }
-      ],
-      "technicalNote": [
-        {
-          "@type": "TechnicalNote",
-          "label": "Huvudpost (flerbandsverk)"
-        }
       ]
     },
     {
       "@id": "_:TMPID#it",
       "@type": "Instance",
-      "dimensions": "18 x 23 cm",
       "hasTitle": [
         {
           "@type": "Title",
@@ -43,26 +32,6 @@
         "@id": "_:TMPID#work"
       },
       "issuanceType": "Monograph",
-      "publication": [
-        {
-          "@type": "Publication",
-          "agent": {
-            "@type": "Agent",
-            "label": "Förlag"
-          },
-          "date": "1989-",
-          "place": {
-            "@type": "Place",
-            "label": "Stockholm"
-          }
-        }
-      ],
-      "publicationCountry": [
-        {
-          "@id": "https://id.kb.se/country/sw"
-        }
-      ],
-      "responsibilityStatement": "[av Förnamn Efternamn]",
       "sameAs": [
         {
           "@id": "http://libris.kb.se/resource/bib/999999"
@@ -71,38 +40,7 @@
     },
     {
       "@id": "_:TMPID#work",
-      "@type": "Text",
-      "audience": {
-        "@id": "marc:Juvenile"
-      },
-      "classification": [
-        {
-          "@id": "https://id.kb.se/term/kssb/6/Hci",
-          "@type": "Classification",
-          "code": "Hci",
-          "inScheme": {
-            "@id": "https://id.kb.se/term/kssb/6",
-            "@type": "ConceptScheme",
-            "code": "kssb/6"
-          }
-        },
-        {
-          "@id": "https://id.kb.se/term/sab/Hci",
-          "@type": "Classification",
-          "code": "Hci",
-          "inScheme": {
-            "@id": "https://id.kb.se/term/sab",
-            "@type": "ConceptScheme",
-            "code": "sab"
-          },
-          "prefLabel": "Skönlitteratur"
-        }
-      ],
-      "language": [
-        {
-          "@id": "https://id.kb.se/language/swe"
-        }
-      ]
+      "@type": "Text"
     }
   ]
 }

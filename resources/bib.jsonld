@@ -4,10 +4,6 @@
     {
       "@id": "_:TMPID",
       "@type": "Record",
-      "assigner": {
-        "@type": "Organization",
-        "name": "NB"
-      },
       "mainEntity": {
         "@id": "_:TMPID#it"
       },
@@ -19,14 +15,13 @@
       "technicalNote": [
         {
           "@type": "TechnicalNote",
-          "label": "Huvudpost (flerbandsverk)"
+          "label": ["Huvudpost (flerbandsverk)"]
         }
       ]
     },
     {
       "@id": "_:TMPID#it",
       "@type": "Instance",
-      "dimensions": "18 x 23 cm",
       "hasTitle": [
         {
           "@type": "Title",
@@ -42,18 +37,13 @@
           "@type": "Publication",
           "agent": {
             "@type": "Agent",
-            "label": "Förlag"
+            "label": ["Förlag"]
           },
-          "date": "1989-",
-          "place": {
+          "date": ["1989-"],
+          "place": [{
             "@type": "Place",
-            "label": "Stockholm"
-          }
-        }
-      ],
-      "publicationCountry": [
-        {
-          "@id": "https://id.kb.se/country/sw"
+            "label": ["Stockholm"]
+          }]
         }
       ],
       "responsibilityStatement": "[av Förnamn Efternamn]",
@@ -66,9 +56,9 @@
     {
       "@id": "_:TMPID#work",
       "@type": "Text",
-      "audience": {
+      "intendedAudience": [{
         "@id": "marc:Juvenile"
-      },
+      }],
       "classification": [
         {
           "@id": "https://id.kb.se/term/kssb/6/Hci",
