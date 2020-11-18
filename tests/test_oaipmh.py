@@ -7,7 +7,7 @@ OAIPMH_URL = os.environ.get('LXLTESTING_OAIPMH_URL')
 
 
 def test_get_record(session, load_holding):
-    holding_id = load_holding()
+    holding_id = load_holding(session)
     result = requests.session().get(OAIPMH_URL +
                                     '?verb=GetRecord&metadataPrefix=oai_dc&identifier=' +
                                     holding_id)
@@ -18,7 +18,7 @@ def test_get_record(session, load_holding):
 
 def test_holding_for_sigel_is_exported_on_bib_datestamp_updated(session, load_holding, load_bib_for_module):
     bib_id = load_bib_for_module()
-    holding_id = load_holding(item_of=bib_id)
+    holding_id = load_holding(session, item_of=bib_id)
 
     from_time = (datetime.utcnow() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     until_time = (datetime.utcnow() + timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -49,7 +49,7 @@ def test_bib_expanded_includes_auth_information(session):
 
 def test_bib_includehold_includes_holdings(session, load_holding):
     bibexample = ITEM_OF_DEFAULT
-    holding_id = load_holding(item_of=ITEM_OF_DEFAULT)
+    holding_id = load_holding(session, item_of=ITEM_OF_DEFAULT)
 
     result = requests.session().get(OAIPMH_URL +
                                     '?verb=GetRecord&metadataPrefix=marcxml_includehold&identifier={}'.format(bibexample))
