@@ -149,8 +149,8 @@ def load(session, request):
 def load_holding(session, request):
     holding_ids = []
 
-    def load_holding(item_of=None):
-        holding_id = create_holding(session=session, item_of=item_of)
+    def load_holding(session, thing_id=None, item_of=None):
+        holding_id = create_holding(session, thing_id, item_of)
         holding_ids.append(holding_id)
         trigger_elastic_refresh(session)
         return holding_id
@@ -158,8 +158,7 @@ def load_holding(session, request):
     # Cleanup
     def fin():
         for holding_id in holding_ids:
-            result = delete_record(session, holding_id)
-            assert result.status_code == 204
+            delete_record(session, holding_id)
 
             result = session.get(holding_id)
             assert result.status_code == 410
@@ -203,7 +202,7 @@ def create_bib(session, thing_id=None, bib_file=BIB_FILE, replacements=None):
     return _do_post(session, bib_file, thing_id, None, replacements)
 
 
-def put_post(session, thing_id, **kwargs):
+def put_record(session, thing_id, **kwargs):
     headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
     return session.put(thing_id, headers=headers, **kwargs)
 

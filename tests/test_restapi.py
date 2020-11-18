@@ -2,10 +2,10 @@ from conf_util import *
 import re
 
 
-def test_update_and_delete_holding(session):
-    holding_id = create_holding(session)
+def test_update_and_delete_holding(session, load_holding):
+    holding_id = load_holding(session)
 
-    result = session.get(holding_id)
+    result = session.get(holding_id, params={"embellished": "false"})
     assert result.status_code == 200
 
     payload = result.json()
@@ -177,7 +177,7 @@ def test_delete_bib(session):
 def test_update_bib(session):
     bib_id = create_bib(session)
 
-    result = session.get(bib_id)
+    result = session.get(bib_id, params={"embellished": "false"})
     assert result.status_code == 200
 
     expected_record_location = bib_id
@@ -199,24 +199,24 @@ def test_update_bib(session):
     payload = json.dumps(json_body)
 
     # Record.sameAs
-    result = put_post(session, ROOT_URL + "/" + record_sameas,
-                      data=payload, allow_redirects=False)
+    result = put_record(session, ROOT_URL + "/" + record_sameas,
+                        data=payload, allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = put_post(session, ROOT_URL + "/" + thing_sameas,
-                      data=payload, allow_redirects=False)
+    result = put_record(session, ROOT_URL + "/" + thing_sameas,
+                        data=payload, allow_redirects=False)
     assert result.status_code == 302
 
     location = result.headers['Location']
     assert location == expected_thing_location
 
     # Thing.@id
-    result = put_post(session, ROOT_URL + "/" + thing_id,
-                      data=payload, allow_redirects=False)
+    result = put_record(session, ROOT_URL + "/" + thing_id,
+                        data=payload, allow_redirects=False)
     assert result.status_code == 204
 
     # cleanup
@@ -251,8 +251,8 @@ def test_get_bib_version(session):
     json_body['@graph'][1]['dimensions'] = '18 x 230 cm'
     payload = json.dumps(json_body)
 
-    result = put_post(session, ROOT_URL + "/" + thing_id,
-                      data=payload, allow_redirects=False)
+    result = put_record(session, ROOT_URL + "/" + thing_id,
+                        data=payload, allow_redirects=False)
     assert result.status_code == 204
 
     old_version = session.get(bib_id + '?version=0')
