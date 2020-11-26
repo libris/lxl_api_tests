@@ -30,7 +30,7 @@ def test_update_and_delete_holding(session, load_holding):
 
 def test_get_bib(session):
     bib_id = create_bib(session)
-    
+
     expected_record_location = bib_id
     expected_content_location = "{0}/data.jsonld".format(bib_id)
     expected_document_header = "{0}".format(bib_id)
@@ -86,7 +86,7 @@ def test_get_bib(session):
 
     trigger_elastic_refresh(session)
 
-    
+
 # Create bib A, and holding B depending on A.
 # Delete A (should be blocked due to dependency)
 # Delete B (should be ok)
@@ -628,7 +628,7 @@ def test_isbn_10_or_13_should_index_corresponding_form(session, bib_file, expect
 
 def test_search_indexing(session):
     search_endpoint = "/find"
-    
+
     bib_id = create_bib(session)
     result = session.get(bib_id)
     json_body = result.json()
@@ -706,16 +706,17 @@ def test_search_date(session, load_bib):
         result = session.get(ROOT_URL + '/find', params=query_params)
         assert result.status_code == 200
         return [i['editionStatement'] for i in result.json()['items']]
-        
+
     # Given
     # meta.generationDate, publication.year, editionStatement
     create('1983-12-07T11:12:00Z', '1968', 'A') # W49
     create('1990-01-02T10:10:10Z', '1971', 'B') # W01
     create('1992-01-02T10:10:10Z', '1975', 'C') # W01
     create('1995-10-10T09:09:09Z', '1980', 'D') # W41
-        
+    trigger_elastic_refresh(session)
+
     # Then:
-    
+
     # Valid date formats
     # (one hour offset UTC vs Europe/Stockholm)
     assert search({'matches-meta.generationDate': '1983'}) == ['A']
@@ -741,17 +742,17 @@ def test_search_date(session, load_bib):
     # Multiple fields - AND
     year_now = datetime.datetime.now().year
     assert search({'matches-meta.generationDate': '1983',
-                   'matches-meta.created': year_now}) == ['A']              
-    
+                   'matches-meta.created': year_now}) == ['A']
+
     assert search({'matches-meta.generationDate': '1983',
                    'matches-meta.created': '2000'}) == []
-    
+
     # Same field, multiple ranges - OR
     assert search({'matches-meta.generationDate': ['1990-W01', '1992-W01']}) == ['B', 'C']
     assert search({'matches-meta.generationDate': '1990-W01, 1992-W01'}) == ['B', 'C']
     assert search({'matches-meta.generationDate': ['1983', '1990,1992', '1995']}) == [
         'A', 'B', 'C', 'D']
-    assert search({'min-meta.generationDate': ['1982', '1989'], 
+    assert search({'min-meta.generationDate': ['1982', '1989'],
                    'max-meta.generationDate': ['1984', '1991']}) == ['A', 'B']
 
     # Works on numeric fields, e.g. publication year
@@ -771,7 +772,7 @@ def test_search_date_invalid(session, load_bib):
     # mixing week and other format
     search({'min-meta.created': '2000', 'max-meta.created': '2001-W05'})
     search({'max-meta.created': '2000-05-05', 'min-meta.created': '2001-W05'})
-    
+
 
 def test_search_o(session):
     o_id = 'https://id.kb.se/language/ger'
