@@ -16,8 +16,6 @@ BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
 BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
 BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
-DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/login/authorize'
-DEFAULT_LXL_LOGIN_URL = 'http://127.0.0.1:5000/login'
 DEFAULT_ROOT_URL = 'http://127.0.0.1:5000'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
 DEFAULT_APIX_USER = 'test'
@@ -25,9 +23,6 @@ DEFAULT_APIX_PASSWORD = 'test'
 DEFAULT_APIX_RO_USER = 'readonly'
 DEFAULT_APIX_RO_PASSWORD = 'readonly'
 
-AUTH_URL = os.environ.get('LXLTESTING_AUTH_URL', DEFAULT_AUTH_URL)
-LXL_LOGIN_URL = os.environ.get('LXLTESTING_LXL_LOGIN_URL',
-                               DEFAULT_LXL_LOGIN_URL)
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
 ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
                                 DEFAULT_ES_REFRESH_URL)
@@ -72,7 +67,7 @@ def session():
     oauth = OAuth2Session(
         client=MobileApplicationClient(client_id=OAUTH_CLIENT_ID),
         scope=OAUTH_SCOPES)
-    authorization_url, state = oauth.authorization_url(AUTH_URL)
+    authorization_url, state = oauth.authorization_url(LOGIN_URL + "/oauth/authorize")
 
     result = session.get(authorization_url)
     page = html.fromstring(result.text)
