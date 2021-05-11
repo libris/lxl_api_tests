@@ -45,21 +45,21 @@
       "issuanceType": "Monograph",
       "publication": [
         {
-          "@type": "Publication",
+          "@type": "PrimaryPublication",
           "agent": {
             "@type": "Agent",
             "label": "Förlag"
           },
+          "country": [
+            {
+              "@id": "https://id.kb.se/country/sw"
+            }
+          ],
           "date": "1989-",
           "place": {
             "@type": "Place",
             "label": "Stockholm"
           }
-        }
-      ],
-      "publicationCountry": [
-        {
-          "@id": "https://id.kb.se/country/sw"
         }
       ],
       "responsibilityStatement": "[av Förnamn Efternamn]",
@@ -72,9 +72,6 @@
     {
       "@id": "_:TMPID#work",
       "@type": "Text",
-      "audience": {
-        "@id": "marc:Juvenile"
-      },
       "classification": [
         {
           "@id": "https://id.kb.se/term/kssb/6/Hci",
@@ -96,6 +93,11 @@
             "code": "sab"
           },
           "prefLabel": "Skönlitteratur"
+        }
+      ],
+      "intendedAudience": [
+        {
+          "@id": "https://id.kb.se/marc/Juvenile"
         }
       ],
       "language": [
