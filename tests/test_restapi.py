@@ -105,7 +105,7 @@ def test_delete_dependency(session):
     thing = graph[1]
     thing_sameas = thing['sameAs'][0]['@id']
     thing_id = thing['@id']
-    hold_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
+    hold_id = create_holding(session, None, thing_id)
 
     # Delete A (should be blocked due to dependency)
     result = delete_record(session, ROOT_URL + "/" + bib_id,
@@ -649,7 +649,7 @@ def test_search_indexing(session):
     assert not 'stats' in es_result
 
     # after create - one hit
-    holding_id = create_holding(session, None, thing_id.decode("utf-8").encode("ascii","ignore"))
+    holding_id = create_holding(session, None, thing_id)
     trigger_elastic_refresh(session)
 
     result = session.get(ROOT_URL + search_endpoint,
@@ -835,7 +835,7 @@ def test_search_o_navigation(limit, session):
     assert first['@id'] == first['first']['@id']
     assert first['itemsPerPage'] == limit
 
-    num_steps = total / limit
+    num_steps = total // limit
     num_steps = num_steps -1 if total % limit == 0 else num_steps
 
     # forward to last
