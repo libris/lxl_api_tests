@@ -23,7 +23,7 @@ To be able to run without https against e.g. localhost, set:
 
 ```bash
 # Install dependencies
-$ virtualenv .venv && source .venv/bin/activate && pip install -r requirements.txt
+$ virtualenv -p python3 .venv && source .venv/bin/activate && pip install -r requirements.txt
 # Run the tests
 $ LXLTESTING_LOGIN_URL=https://some.host/login LXLTESTING_USERNAME=username \
       LXLTESTING_PASSWORD=password LXLTESTING_OAUTH_CLIENT_ID=client-id pytest

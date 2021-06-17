@@ -3,7 +3,7 @@ from random import randrange
 from lxml import html
 from oauthlib.oauth2 import MobileApplicationClient
 from requests_oauthlib import OAuth2Session
-from urlparse import urlparse
+from urllib.parse import urlparse
 import json
 import os
 import pytest
@@ -236,7 +236,7 @@ def _do_post(session, filename, thing_id, item_of, replacements=None):
     headers = {'Content-Type': 'application/ld+json',
                XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
     result = session.post(ROOT_URL + "/",
-                          data=json_payload,
+                          json=json.loads(json_payload),
                           headers=headers)
     assert result.status_code == 201
     location = result.headers['Location']
