@@ -240,7 +240,7 @@ def _do_post(session, filename, thing_id, item_of, replacements=None):
                           headers=headers)
     if result.status_code != 201:
         print(result.content)
-    # assert result.status_code == 201
+    assert result.status_code == 201
     location = result.headers['Location']
 
     test_ids.append(test_id)
