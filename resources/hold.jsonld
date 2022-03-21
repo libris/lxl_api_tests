@@ -6,8 +6,7 @@
             "@type": "Record",
             "mainEntity": {
                 "@id": "_:TMPID#it"
-            },
-            "encodingLevel": "marc:HoldingsLevel4"
+            }
         },
         {
             "@id": "_:TMPID#it",
