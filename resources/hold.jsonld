@@ -10,15 +10,15 @@
         },
         {
             "@id": "_:TMPID#it",
-            "marc:acquisitionStatus": "marc:CurrentlyReceived",
-            "marc:completeness": "marc:CompletenessType-1",
-            "marc:retentionPolicy": "marc:PermanentlyRetained",
+            "marc:acquisitionStatus": "https://id.kb.se/marc/CurrentlyReceived",
+            "marc:completeness": "https://id.kb.se/marc/CompletenessType-1",
+            "marc:retentionPolicy": "https://id.kb.se/marc/PermanentlyRetained",
             "heldBy": {
-                "notation": "Utb2",
+                "sigel": "Utb2",
                 "@id": "https://libris.kb.se/library/Utb2",
-                "@type": "Organization"
+                "@type": "Library"
             },
-            "marc:copyReport": "marc:Separate",
+            "marc:copyReport": "https://id.kb.se/marc/Separate",
             "inventoryLevel": 1,
             "itemOf": {
                 "@id": "ITEM_OF_TMP"
@@ -27,9 +27,9 @@
                 {
                     "heldBy": [
                         {
-                            "notation": "Utb2",
+                            "sigel": "Utb2",
                             "@id": "https://libris.kb.se/library/Utb2",
-                            "@type": "Organization"
+                            "@type": "Library"
                         }
                     ],
                     "availability": [
