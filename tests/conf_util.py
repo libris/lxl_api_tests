@@ -238,6 +238,8 @@ def _do_post(session, filename, thing_id, item_of, replacements=None):
     result = session.post(ROOT_URL + "/",
                           json=json.loads(json_payload),
                           headers=headers)
+    if result.status_code == 400:
+        print(result.content)
     assert result.status_code == 201
     location = result.headers['Location']
 
