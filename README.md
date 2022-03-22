@@ -14,8 +14,7 @@ authorization. The following variables need to be set before executing the tests
 - `LXLTESTING_LOGIN_URL` - URL to the oauth server e.g. `https://login.libris.kb.se` or a local xl_auth instance.
 - `LXLTESTING_USERNAME` and `LXLTESTING_PASSWORD` - user credentials for the oauth server.
 - `LXLTESTING_OAUTH_CLIENT_ID` - client ID for an oauth client that is configured to redirect to the system under test.
-- `LXLTESTING_ROOT_URL` - path to the Libris XL rest API, defaults to `http://127.0.0.1:5000`.
-
+- `LXLTESTING_ROOT_URL` - path to the Libris XL rest API, defaults to `http://kblocalhost.kb.se:5000`.
 To be able to run without https against e.g. localhost, set:
 `export OAUTHLIB_INSECURE_TRANSPORT=1`
 
