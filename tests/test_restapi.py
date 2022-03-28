@@ -1,6 +1,8 @@
 from conf_util import *
 import re
 
+UNIQUE_INSTANCE_RECORD_ID = ROOT_URL + '/fxql7jqr38b1dkf'
+
 
 def test_update_and_delete_holding(session, load_holding):
     holding_id = load_holding(session)
@@ -42,6 +44,10 @@ def test_get_bib(session):
     json_body = result.json()
     graph = json_body['@graph']
     record = graph[0]
+
+    # Record
+    assert record['@id'] == expected_record_location
+
     thing = graph[1]
     record_sameas = record['sameAs'][0]['@id']
     thing_id = thing['@id']
@@ -188,10 +194,13 @@ def test_update_bib(session):
     json_body = result.json()
     graph = json_body['@graph']
     record = graph[0]
-    thing = graph[1]
+    record_id = record['@id']
     record_sameas = record['sameAs'][0]['@id']
+
+    thing = graph[1]
     thing_id = thing['@id']
     thing_sameas = thing['sameAs'][0]['@id']
+
     expected_thing_location = thing_id
 
     # Update value in document
@@ -308,11 +317,11 @@ def get_with_parameters(session, view, framed, embellished):
 
     def is_embellished(json):
         if is_framed(json):
-            return len(json['mainEntity']['instanceOf']['illustrativeContent']) > 1
+            return len(json['mainEntity']['instanceOf']['language'][0]) > 1
         else:
             return len(json['@graph']) > 3
 
-    bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
+    bib_id = UNIQUE_INSTANCE_RECORD_ID
     url = ROOT_URL + '/' + bib_id + view
 
     query = '?framed=%s&embellished=%s' % (framed, embellished)
@@ -337,7 +346,7 @@ def test_get_with_lens(session, view, lens):
             return 'chip'
         raise Exception('could not identify lens')
 
-    bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
+    bib_id = UNIQUE_INSTANCE_RECORD_ID
     url = ROOT_URL + '/' + bib_id + view
 
     if lens:
@@ -350,25 +359,6 @@ def test_get_with_lens(session, view, lens):
     assert result.status_code == 200
     json = result.json()
     assert check_lens(json) == lens
-
-
-cached_ids = {}
-def find_id(session, q):
-    if q in cached_ids:
-        return cached_ids[q]
-
-    url = ROOT_URL + '/find?q=' + q
-
-    result = session.get(url)
-    assert result.status_code == 200
-    json = result.json()
-    assert len(json['items']) == 1
-
-    the_id = json['items'][0]['@id']
-    the_id = re.sub('#.*', '', the_id)
-    cached_ids[q] = the_id
-
-    return the_id
 
 
 def test_search(session):
