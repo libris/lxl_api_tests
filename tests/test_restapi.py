@@ -32,9 +32,9 @@ def test_get_bib(session):
     bib_id = create_bib(session)
 
     expected_record_location = bib_id
-    expected_content_location = "{0}/data.jsonld".format(bib_id)
-    expected_document_header = "{0}".format(bib_id)
-    expected_link_header = "<{0}>; rel=describedby".format(bib_id)
+    expected_content_location = f"{bib_id}/data.jsonld"
+    expected_document_header = f"{bib_id}"
+    expected_link_header = f"<{bib_id}>; rel=describedby"
 
     result = session.get(bib_id)
     assert result.status_code == 200
