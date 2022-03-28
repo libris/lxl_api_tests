@@ -361,6 +361,33 @@ def test_get_with_lens(session, view, lens):
     assert check_lens(json) == lens
 
 
+def test_content_negotiation(session):
+    bib_id = UNIQUE_INSTANCE_RECORD_ID
+
+    result = session.get(bib_id, headers={'Accept': "text/turtle"})
+
+    assert result.status_code == 200
+    assert result.headers['Content-Type'] == 'text/turtle;charset=UTF-8'
+
+    assert b'prefix : <' in result.content
+
+
+def test_profile_negotiation(session):
+    bib_id = UNIQUE_INSTANCE_RECORD_ID
+
+    profile_uri = 'https://id.kb.se/sys/context/target/loc-w3c-sdo'
+    result = session.get(bib_id, headers={
+        'Accept': "text/turtle",
+        'Accept-Profile': f"<{profile_uri}>"
+    })
+
+    assert result.status_code == 200
+    assert result.headers['Content-Type'] == 'text/turtle;charset=UTF-8'
+    assert profile_uri in result.headers['Content-Profile']
+
+    assert b'prefix bf2: <' in result.content
+
+
 def test_search(session):
     search_endpoint = "/find"
     limit = 1
