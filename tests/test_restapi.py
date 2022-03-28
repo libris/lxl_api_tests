@@ -930,6 +930,14 @@ def test_search_or_prefix(session):
     assert (len(deduplicated_a_and_b) == len(es_result_a_or_b['items']))
 
 
+def test_get_catalogue_start_page(session):
+    result = requests.get(ROOT_URL + "/katalogisering", headers={
+        'Accept': "text/html, */*;q=0.9",
+    })
+    assert result.status_code == 200
+    assert result.headers['Content-Type'].startswith('text/html')
+
+
 def has_reference(x, ref, key=None):
     if isinstance(x, dict):
         return any([has_reference(x[key], ref, key=key) for key in x])
