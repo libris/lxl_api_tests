@@ -45,11 +45,11 @@ def test_get_bib(session):
     thing = graph[1]
     record_sameas = record['sameAs'][0]['@id']
     thing_id = thing['@id']
-    thing_sameas = thing['sameAs'][0]['@id']
+    thing_sameas = thing['sameAs'][0]['@id'].replace('http://libris.kb.se', ROOT_URL)
     expected_thing_location = thing_id
 
     # Record.sameAs
-    result = session.get(ROOT_URL + "/" + record_sameas,
+    result = session.get(API_URL + "/" + record_sameas,
                          allow_redirects=False)
     assert result.status_code == 302
 
@@ -57,11 +57,11 @@ def test_get_bib(session):
     assert location == expected_record_location
 
     # Thing.@id
-    result = session.get(ROOT_URL + "/" + thing_id)
+    result = session.get(thing_id)
     assert result.status_code == 200
 
     # Thing.sameAs
-    result = session.get(ROOT_URL + "/" + thing_sameas,
+    result = session.get(thing_sameas,
                          allow_redirects=False)
     assert result.status_code == 302
 
@@ -75,13 +75,13 @@ def test_get_bib(session):
     result = session.get(bib_id)
     assert result.status_code == 410
 
-    result = session.get(ROOT_URL + "/" + record_sameas)
+    result = session.get(API_URL + "/" + record_sameas)
     assert result.status_code == 404
 
-    result = session.get(ROOT_URL + "/" + thing_id)
+    result = session.get(thing_id)
     assert result.status_code == 410
 
-    result = session.get(ROOT_URL + "/" + thing_sameas)
+    result = session.get(thing_sameas)
     assert result.status_code == 404
 
     trigger_elastic_refresh(session)
@@ -103,22 +103,22 @@ def test_delete_dependency(session):
     record = graph[0]
     record_id = record['@id']
     thing = graph[1]
-    thing_sameas = thing['sameAs'][0]['@id']
+    thing_sameas = thing['sameAs'][0]['@id'].replace('http://libris.kb.se', ROOT_URL)
     thing_id = thing['@id']
     hold_id = create_holding(session, None, thing_id)
 
     # Delete A (should be blocked due to dependency)
-    result = delete_record(session, ROOT_URL + "/" + bib_id,
+    result = delete_record(session, bib_id,
                            allow_redirects=False)
     assert result.status_code == 403
 
     # Delete B (should be ok)
-    result = delete_record(session, ROOT_URL + "/" + hold_id,
+    result = delete_record(session, hold_id,
                            allow_redirects=False)
     assert result.status_code == 204
 
     # Delete A (should now be ok as dependency is gone)
-    result = delete_record(session, ROOT_URL + "/" + bib_id,
+    result = delete_record(session, bib_id,
                            allow_redirects=False)
     assert result.status_code == 204
 
@@ -144,11 +144,11 @@ def test_delete_bib(session):
     thing = graph[1]
     record_sameas = record['sameAs'][0]['@id']
     thing_id = thing['@id']
-    thing_sameas = thing['sameAs'][0]['@id']
+    thing_sameas = thing['sameAs'][0]['@id'].replace('http://libris.kb.se', ROOT_URL)
     expected_thing_location = thing_id
 
     # Record.sameAs
-    result = delete_record(session, ROOT_URL + "/" + record_sameas,
+    result = delete_record(session, API_URL + "/" + record_sameas,
                            allow_redirects=False)
     assert result.status_code == 302
 
@@ -156,7 +156,7 @@ def test_delete_bib(session):
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = delete_record(session, ROOT_URL + "/" + thing_sameas,
+    result = delete_record(session, thing_sameas,
                            allow_redirects=False)
     assert result.status_code == 302
 
@@ -164,7 +164,7 @@ def test_delete_bib(session):
     assert location == expected_thing_location
 
     # Thing.@id
-    result = delete_record(session, ROOT_URL + "/" + thing_id,
+    result = delete_record(session, thing_id,
                            allow_redirects=False)
     assert result.status_code == 204
 
@@ -191,7 +191,7 @@ def test_update_bib(session):
     thing = graph[1]
     record_sameas = record['sameAs'][0]['@id']
     thing_id = thing['@id']
-    thing_sameas = thing['sameAs'][0]['@id']
+    thing_sameas = thing['sameAs'][0]['@id'].replace('http://libris.kb.se', ROOT_URL)
     expected_thing_location = thing_id
 
     # Update value in document
@@ -199,7 +199,7 @@ def test_update_bib(session):
     payload = json.dumps(json_body)
 
     # Record.sameAs
-    result = put_record(session, ROOT_URL + "/" + record_sameas,
+    result = put_record(session, API_URL + "/" + record_sameas,
                         data=payload, allow_redirects=False)
     assert result.status_code == 302
 
@@ -207,7 +207,7 @@ def test_update_bib(session):
     assert location == expected_record_location
 
     # Thing.sameAs
-    result = put_record(session, ROOT_URL + "/" + thing_sameas,
+    result = put_record(session, thing_sameas,
                         data=payload, allow_redirects=False)
     assert result.status_code == 302
 
@@ -215,7 +215,7 @@ def test_update_bib(session):
     assert location == expected_thing_location
 
     # Thing.@id
-    result = put_record(session, ROOT_URL + "/" + thing_id,
+    result = put_record(session, thing_id,
                         data=payload, allow_redirects=False)
     assert result.status_code == 204
 
@@ -251,7 +251,7 @@ def test_get_bib_version(session):
     json_body['@graph'][1]['dimensions'] = '18 x 230 cm'
     payload = json.dumps(json_body)
 
-    result = put_record(session, ROOT_URL + "/" + thing_id,
+    result = put_record(session, thing_id,
                         data=payload, allow_redirects=False)
     assert result.status_code == 204
 
@@ -313,7 +313,7 @@ def get_with_parameters(session, view, framed, embellished):
             return len(json['@graph']) > 3
 
     bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
-    url = ROOT_URL + '/' + bib_id + view
+    url = API_URL + '/' + bib_id + view
 
     query = '?framed=%s&embellished=%s' % (framed, embellished)
 
@@ -338,7 +338,7 @@ def test_get_with_lens(session, view, lens):
         raise Exception('could not identify lens')
 
     bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
-    url = ROOT_URL + '/' + bib_id + view
+    url = API_URL + '/' + bib_id + view
 
     if lens:
         url = url + '?lens=' + lens

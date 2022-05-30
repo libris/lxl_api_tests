@@ -17,12 +17,14 @@ BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
 BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
 DEFAULT_ROOT_URL = 'http://kblocalhost.kb.se:5000'
+DEFAULT_API_URL = 'http://localhost:8100'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
 DEFAULT_APIX_USER = 'test'
 DEFAULT_APIX_PASSWORD = 'test'
 DEFAULT_APIX_RO_USER = 'readonly'
 DEFAULT_APIX_RO_PASSWORD = 'readonly'
 
+API_URL = os.environ.get('LXLTESTING_API_URL', DEFAULT_API_URL)
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
 ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
                                 DEFAULT_ES_REFRESH_URL)
@@ -198,7 +200,8 @@ def create_bib(session, thing_id=None, bib_file=BIB_FILE, replacements=None):
 
 
 def put_record(session, thing_id, **kwargs):
-    headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
+    headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL,
+               'Content-Type': 'application/ld+json'}
     return session.put(thing_id, headers=headers, **kwargs)
 
 
@@ -235,10 +238,11 @@ def _do_post(session, filename, thing_id, item_of, replacements=None):
 
     headers = {'Content-Type': 'application/ld+json',
                XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
-    result = session.post(ROOT_URL + "/",
+    result = session.post(ROOT_URL + "/data",
                           json=json.loads(json_payload),
                           headers=headers)
     if result.status_code != 201:
+        print(result.status_code)
         print(result.content)
     assert result.status_code == 201
     location = result.headers['Location']
