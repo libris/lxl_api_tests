@@ -8,6 +8,7 @@ import json
 import os
 import pytest
 import requests
+import time
 
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
@@ -268,6 +269,11 @@ def update_holding(session, holding_id, payload, etag):
 
 
 def trigger_elastic_refresh(session):
+    # All indexing is now asynchronous, have to wait a little for it.
+    # This sleep is unfortunate but seems to work well.
+    # At the moment, we have no way to know if indexing is finished.
+    time.sleep(0.5)
+
     result = session.post(ES_REFRESH_URL)
     assert result.status_code == 200
 
