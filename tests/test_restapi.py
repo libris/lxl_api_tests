@@ -1,6 +1,7 @@
 from conf_util import *
 import re
 
+pytestmark = pytest.mark.dev
 
 def test_update_and_delete_holding(session, load_holding):
     holding_id = load_holding(session)

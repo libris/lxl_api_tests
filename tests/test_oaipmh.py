@@ -3,6 +3,8 @@ import os
 import requests
 from datetime import datetime, timedelta
 
+pytestmark = pytest.mark.dev
+
 OAIPMH_URL = os.environ.get('LXLTESTING_OAIPMH_URL')
 
 

@@ -3,6 +3,8 @@ import os
 import sys # sys.stderr.write('hej\n')
 import xml.etree.ElementTree as ET
 
+pytestmark = pytest.mark.dev
+
 APIX_URL = os.environ.get('LXLTESTING_APIX_URL')
 if not APIX_URL.endswith("/"):
     APIX_URL += "/"
