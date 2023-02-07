@@ -2,7 +2,7 @@ certifi==2021.5.30
 chardet==4.0.0
 idna==2.10
 lxml==4.9.1
-oauthlib==3.2.1
+oauthlib==3.2.2
 py==1.10.0
 pytest==6.2.4
 requests==2.25.1
