@@ -17,7 +17,7 @@ BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
 BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
 BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
-DEFAULT_ROOT_URL = 'http://libris.localhost:5000'
+DEFAULT_ROOT_URL = 'http://libris.kb.se.localhost:5000'
 DEFAULT_API_URL = 'http://localhost:8180'
 DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
 DEFAULT_APIX_USER = 'test'
