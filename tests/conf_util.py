@@ -19,7 +19,9 @@ BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
 DEFAULT_ROOT_URL = 'http://libris.kb.se.localhost:5000'
 DEFAULT_API_URL = 'http://localhost:8180'
-DEFAULT_ES_REFRESH_URL = 'http://127.0.0.1:9200/_refresh'
+DEFAULT_ES_REFRESH_URL = 'https://127.0.0.1:9200/_refresh'
+DEFAULT_ES_USER = 'elastic'
+DEFAULT_ES_PASSWORD = 'elastic'
 DEFAULT_APIX_USER = 'test'
 DEFAULT_APIX_PASSWORD = 'test'
 DEFAULT_APIX_RO_USER = 'readonly'
@@ -29,6 +31,8 @@ API_URL = os.environ.get('LXLTESTING_API_URL', DEFAULT_API_URL)
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
 ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
                                 DEFAULT_ES_REFRESH_URL)
+ES_USER = os.environ.get('LXLTESTING_ES_USER', DEFAULT_ES_USER)
+ES_PASSWORD = os.environ.get('LXLTESTING_ES_PASSWORD', DEFAULT_ES_PASSWORD)
 
 LOGIN_URL = os.environ.get('LXLTESTING_LOGIN_URL')
 USERNAME = os.environ.get('LXLTESTING_USERNAME')
@@ -209,7 +213,7 @@ def put_record(session, thing_id, **kwargs):
 def delete_record(session, thing_id, **kwargs):
     headers = {XL_ACTIVE_SIGEL_HEADER: ACTIVE_SIGEL}
     # Ensure records are present in the index before trying to delete them
-    session.post(ES_REFRESH_URL)
+    session.post(ES_REFRESH_URL, verify=False, auth=(ES_USER, ES_PASSWORD))
     return session.delete(thing_id, headers=headers, **kwargs)
 
 
@@ -274,7 +278,7 @@ def trigger_elastic_refresh(session):
     # At the moment, we have no way to know if indexing is finished.
     time.sleep(0.5)
 
-    result = session.post(ES_REFRESH_URL)
+    result = session.post(ES_REFRESH_URL, verify=False, auth=(ES_USER, ES_PASSWORD))
     assert result.status_code == 200
 
 

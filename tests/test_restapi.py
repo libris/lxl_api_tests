@@ -930,5 +930,5 @@ def _assert_link_header(link_header, expected):
 
 
 def _trigger_elastic_refresh(session):
-    result = session.post(ES_REFRESH_URL)
+    result = session.post(ES_REFRESH_URL, verify=False, auth=(ES_USER, ES_PASSWORD))
     assert result.status_code == 200
