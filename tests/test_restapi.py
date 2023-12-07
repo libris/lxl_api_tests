@@ -309,7 +309,7 @@ def get_with_parameters(session, view, framed, embellished):
 
     def is_embellished(json):
         if is_framed(json):
-            return len(json['mainEntity']['illustrativeContent']) > 1
+            return len(json['mainEntity']['illustrativeContent'][0]) > 1
         else:
             return len(json['@graph']) > 3
 
