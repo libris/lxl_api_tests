@@ -314,7 +314,7 @@ def get_with_parameters(session, view, framed, embellished):
             return len(json['@graph']) > 3
 
     bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
-    url = API_URL + '/' + bib_id + view
+    url = bib_id + view
 
     query = '?framed=%s&embellished=%s' % (framed, embellished)
 
@@ -339,7 +339,7 @@ def test_get_with_lens(session, view, lens):
         raise Exception('could not identify lens')
 
     bib_id = find_id(session, '9789187745317+nya+konditionstest+cykel')
-    url = API_URL + '/' + bib_id + view
+    url = bib_id + view
 
     if lens:
         url = url + '?lens=' + lens
