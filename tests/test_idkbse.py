@@ -42,6 +42,7 @@ def test_get_data_urls(session):
     urls = [
         f"{ID_URL}/vocab",
         f"{ID_URL}/sys/context/kbv",
+        f"{ID_URL}/vocab/display",
         f"{ID_URL}/term/sao/Konstnärer i utlandet",
         f"{ID_URL}/term/sao/R%26B%20%28musik%29",
     ]
