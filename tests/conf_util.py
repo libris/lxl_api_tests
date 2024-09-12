@@ -18,6 +18,7 @@ BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
 BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
 
 DEFAULT_ROOT_URL = 'http://libris.kb.se.localhost:5000'
+DEFAULT_ID_URL = 'http://id.kb.se.localhost:5000'
 DEFAULT_API_URL = 'http://localhost:8180'
 DEFAULT_ES_REFRESH_URL = 'https://127.0.0.1:9200/_refresh'
 DEFAULT_ES_USER = 'elastic'
@@ -28,6 +29,7 @@ DEFAULT_APIX_RO_USER = 'readonly'
 DEFAULT_APIX_RO_PASSWORD = 'readonly'
 
 API_URL = os.environ.get('LXLTESTING_API_URL', DEFAULT_API_URL)
+ID_URL = os.environ.get('LXLTESTING_ID_URL', DEFAULT_ID_URL)
 ROOT_URL = os.environ.get('LXLTESTING_ROOT_URL', DEFAULT_ROOT_URL)
 ES_REFRESH_URL = os.environ.get('LXLTESTING_ES_REFRESH_URL',
                                 DEFAULT_ES_REFRESH_URL)
