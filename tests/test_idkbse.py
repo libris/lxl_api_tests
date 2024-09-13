@@ -15,7 +15,6 @@ non_html_content_types = [
     "application/trig",
     "application/rdf+xml",
     "application/json",
-    "text/n3",
 ]
 
 
