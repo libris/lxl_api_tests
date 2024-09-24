@@ -915,6 +915,18 @@ def test_search_or_prefix(session):
     assert (len(deduplicated_a_and_b) == len(es_result_a_or_b['items']))
 
 
+def test_context(session):
+    context_url = f"{API_URL}/context.jsonld"
+
+    result = session.get(context_url, allow_redirects=False)
+    assert result.status_code == 302, context_url
+
+    # Note: allow_redirects=True is default behavior
+    result = session.get(context_url, allow_redirects=True)
+    assert result.status_code == 200, context_url
+    assert json.loads(result.content), context_url
+
+
 def has_reference(x, ref, key=None):
     if isinstance(x, dict):
         return any([has_reference(x[key], ref, key=key) for key in x])
