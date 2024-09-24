@@ -63,12 +63,12 @@ def test_context(session):
     context_url = f"{ID_URL}/context.jsonld"
 
     result = session.get(context_url, allow_redirects=False)
-    assert result.status_code == 302, url
+    assert result.status_code == 302, context_url
 
     # Note: allow_redirects=True is default behavior
     result = session.get(context_url, allow_redirects=True)
-    assert result.status_code == 200, url
-    assert json.loads(result.content), url
+    assert result.status_code == 200, context_url
+    assert json.loads(result.content), context_url
 
 
 def _check_html_response(result, url):
