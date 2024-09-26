@@ -17,14 +17,19 @@ non_html_content_types = [
     "application/json",
 ]
 
+urls_to_test_always = [
+    f"{ID_URL}/sys/context/kbv",
+    f"{ID_URL}/term/sao/Konstnärer i utlandet",
+    f"{ID_URL}/term/sao/R%26B%20%28musik%29",
+    f"{ID_URL}/term/saogf/Handb%C3%B6cker%2C%20manualer%20etc.",
+    f"{ID_URL}/term/gmgpc%2F%2Fswe/Kartor",
+]
+
 
 def test_get_urls(session):
-    urls = [
+    urls = urls_to_test_always + [
         f"{ID_URL}/",
         f"{ID_URL}/vocab/",
-        f"{ID_URL}/sys/context/kbv",
-        f"{ID_URL}/term/sao/Konstnärer i utlandet",
-        f"{ID_URL}/term/sao/R%26B%20%28musik%29",
     ]
 
     for url in urls:
@@ -38,12 +43,9 @@ def test_get_urls(session):
 
 
 def test_get_data_urls(session):
-    urls = [
+    urls = urls_to_test_always + [
         f"{ID_URL}/vocab",
-        f"{ID_URL}/sys/context/kbv",
         f"{ID_URL}/vocab/display",
-        f"{ID_URL}/term/sao/Konstnärer i utlandet",
-        f"{ID_URL}/term/sao/R%26B%20%28musik%29",
     ]
 
     file_types = [
