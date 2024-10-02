@@ -110,7 +110,7 @@ def session():
                               headers={'Referer': result.url})
         token = _get_token_from_url(result.url)
         session.headers.update({'Authorization': 'Bearer {}'.format(token)})
-        assert result.status_code == 200
+        assert result.status_code == 200, result.status_code
 
     session.headers.update({'Accept': 'application/ld+json'})
     return session
@@ -140,10 +140,10 @@ def load(session, request):
     def fin():
         for bib_id in bib_ids:
             result = delete_record(session, bib_id)
-            assert result.status_code == 204
+            assert result.status_code == 204, result.status_code
 
             result = session.get(bib_id)
-            assert result.status_code == 410
+            assert result.status_code == 410, result.status_code
 
     request.addfinalizer(fin)
     return load_bib
@@ -165,7 +165,7 @@ def load_holding(session, request):
             delete_record(session, holding_id)
 
             result = session.get(holding_id)
-            assert result.status_code == 410
+            assert result.status_code == 410, result.status_code
 
     request.addfinalizer(fin)
 
@@ -251,7 +251,7 @@ def _do_post(session, filename, thing_id, item_of, replacements=None):
     if result.status_code != 201:
         print(result.status_code)
         print(result.content)
-    assert result.status_code == 201
+    assert result.status_code == 201, result.status_code
     location = result.headers['Location']
 
     test_ids.append(test_id)
