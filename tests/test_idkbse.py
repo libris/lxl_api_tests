@@ -3,20 +3,6 @@ import json
 
 pytestmark = pytest.mark.dev
 
-html_content_types = [
-    "text/html",
-    "application/xhtml",
-    "*/*",
-]
-
-non_html_content_types = [
-    "application/ld+json",
-    "text/turtle",
-    "application/trig",
-    "application/rdf+xml",
-    "application/json",
-]
-
 urls_to_test_always = [
     f"{ID_URL}/sys/context/kbv",
     f"{ID_URL}/term/sao/Konstnärer i utlandet",
@@ -33,11 +19,11 @@ def test_get_urls(session):
     ]
 
     for url in urls:
-        for content_type in html_content_types:
+        for content_type in HTML_CONTENT_TYPES:
             result = session.get(url, headers={"accept": content_type})
             _check_html_response(result, url)
 
-        for content_type in non_html_content_types:
+        for content_type in NON_HTML_CONTENT_TYPES:
             result = session.get(url, headers={"accept": content_type})
             _check_nonhtml_response(result, content_type, url)
 
@@ -48,17 +34,10 @@ def test_get_data_urls(session):
         f"{ID_URL}/vocab/display",
     ]
 
-    file_types = [
-        {"content-type": "application/ld+json", "extension": "jsonld"},
-        {"content-type": "application/json", "extension": "json"},
-        {"content-type": "text/turtle", "extension": "ttl"},
-        {"content-type": "application/rdf+xml", "extension": "xml"},
-    ]
-
     for url in urls:
-        for file_type in file_types:
-            result = session.get(f"{url}/data.{file_type['extension']}")
-            _check_nonhtml_response(result, file_type["content-type"], url)
+        for content_type, extension in FILE_TYPES.items():
+            result = session.get(f"{url}/data.{extension}")
+            _check_nonhtml_response(result, content_type, url)
 
 
 def test_context(session):
