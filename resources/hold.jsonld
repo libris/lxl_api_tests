@@ -49,9 +49,6 @@
                     "@type": "Item"
                 }
             ],
-            "subject": {
-                "@id": "https://id.kb.se/term/sao/Stadsliv%20i%20litteraturen"
-            },
             "@type": "Item"
         }
     ]

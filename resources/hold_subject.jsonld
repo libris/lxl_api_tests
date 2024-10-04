@@ -1,0 +1,25 @@
+{
+    "@graph": [
+        {
+            "@id": "_:TMPID",
+            "marc:holdingType": "marc:SinglePartItemHolding",
+            "@type": "Record",
+            "mainEntity": {
+                "@id": "_:TMPID#it"
+            }
+        },
+        {
+            "@id": "_:TMPID#it",
+            "@type": "Item",
+            "heldBy": {
+                "@id": "https://libris.kb.se/library/Utb2"
+            },
+            "itemOf": {
+                "@id": "ITEM_OF_TMP"
+            },
+            "subject": {
+                "@id": "https://id.kb.se/term/sao/Stadsliv%20i%20litteraturen"
+            }
+        }
+    ]
+}
