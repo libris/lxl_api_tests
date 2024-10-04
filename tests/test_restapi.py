@@ -935,9 +935,9 @@ def test_search_matches_in_nested(session, load_bib, load_holding, condition, ex
                     condition: 'https://id.kb.se/term/sao/Stadsliv'}
 
     result = session.get(ROOT_URL + search_endpoint, params=query_params)
-    assert result.status_code == 200
 
     # Then:
+    assert result.status_code == 200
     es_result = result.json()
     assert len(es_result['items']) == expected_hits
     if expected_hits == 1:
