@@ -1,3 +1,5 @@
+from time import sleep
+
 from conf_util import *
 import re
 
@@ -953,6 +955,33 @@ def test_search_or_prefix(session):
     deduplicated_a_and_b = set(map(tuple, es_result_a['items'] + es_result_b['items']))
 
     assert (len(deduplicated_a_and_b) == len(es_result_a_or_b['items']))
+
+
+@pytest.mark.parametrize('condition, expected_hits',
+                         [('and-matches-@reverse.itemOf.subject.@id', 1),
+                          ('matches-@reverse.itemOf.subject.@id', 1),
+                          ('@reverse.itemOf.subject.@id', 0)])
+def test_search_matches_in_nested_doc(session, load_bib, load_holding, condition, expected_hits):
+    # <item1> :subject <sao:Stadsliv i litteraturen>
+    # <sao:Stadsliv i litteraturen> :broader <sao:Stadsliv>
+
+    # Given
+    bib_id = load_bib() + '#it'
+    load_holding(session, None, bib_id)
+    search_endpoint = "/find"
+
+    # When
+    query_params = {'@reverse.itemOf.heldBy.@id': 'https://libris.kb.se/library/Utb2',
+                    condition: 'https://id.kb.se/term/sao/Stadsliv'}
+
+    result = session.get(ROOT_URL + search_endpoint, params=query_params)
+
+    # Then:
+    assert result.status_code == 200
+    es_result = result.json()
+    assert len(es_result['items']) == expected_hits
+    if expected_hits == 1:
+        assert es_result['items'][0]['@id'] == bib_id
 
 
 def test_context(session):
