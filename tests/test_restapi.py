@@ -921,7 +921,7 @@ def test_search_or_prefix(session):
                          [('and-matches-@reverse.itemOf.subject.@id', 1),
                           ('matches-@reverse.itemOf.subject.@id', 1),
                           ('@reverse.itemOf.subject.@id', 0)])
-def test_search_matches_in_nested(session, load_bib, load_holding, condition, expected_hits):
+def test_search_matches_in_nested_doc(session, load_bib, load_holding, condition, expected_hits):
     # <item1> :subject <sao:Stadsliv i litteraturen>
     # <sao:Stadsliv i litteraturen> :broader <sao:Stadsliv>
 
