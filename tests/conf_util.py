@@ -13,6 +13,7 @@ import time
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 HOLD_FILE = os.path.join(ROOT_DIR, "resources", "hold.jsonld")
+HOLD_SUBJECT_FILE = os.path.join(ROOT_DIR, "resources", "hold_subject.jsonld")
 BIB_FILE = os.path.join(ROOT_DIR, "resources", "bib.jsonld")
 BIB_FILE_ISBN13 = os.path.join(ROOT_DIR, "resources", "bib_isbn13.jsonld")
 BIB_FILE_ISBN10 = os.path.join(ROOT_DIR, "resources", "bib_isbn10.jsonld")
@@ -175,8 +176,8 @@ def load(session, request):
 def load_holding(session, request):
     holding_ids = []
 
-    def load_holding(session, thing_id=None, item_of=None):
-        holding_id = create_holding(session, thing_id, item_of)
+    def load_holding(session, thing_id=None, item_of=None, hold_file=HOLD_FILE):
+        holding_id = create_holding(session, thing_id, item_of, hold_file)
         holding_ids.append(holding_id)
         trigger_elastic_refresh(session)
         return holding_id
@@ -220,8 +221,8 @@ def _read_payload(filename):
         return payload
 
 
-def create_holding(session, thing_id=None, item_of=None):
-    return _do_post(session, HOLD_FILE, thing_id, item_of)
+def create_holding(session, thing_id=None, item_of=None, hold_file=HOLD_FILE):
+    return _do_post(session, hold_file, thing_id, item_of)
 
 
 def create_bib(session, thing_id=None, bib_file=BIB_FILE, replacements=None):

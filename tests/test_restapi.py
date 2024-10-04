@@ -703,6 +703,7 @@ def test_search_indexing(session):
     assert len(es_result['items']) == num_items_before + 1
 
     aggregates = es_result['stats']['sliceByDimension']
+    print(es_result['stats']['sliceByDimension'])
     assert len(aggregates) == 1
 
     type_aggregate = aggregates['@type']
@@ -967,7 +968,7 @@ def test_search_matches_in_nested_doc(session, load_bib, load_holding, condition
 
     # Given
     bib_id = load_bib() + '#it'
-    load_holding(session, None, bib_id)
+    load_holding(session, None, bib_id, HOLD_SUBJECT_FILE)
     search_endpoint = "/find"
 
     # When
