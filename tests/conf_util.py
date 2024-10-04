@@ -55,6 +55,28 @@ ITEM_OF_DEFAULT = 'http://libris.kb.se/resource/bib/816913'
 XL_ACTIVE_SIGEL_HEADER = 'XL-Active-Sigel'
 ACTIVE_SIGEL = 'Utb2'
 
+HTML_CONTENT_TYPES = [
+    "text/html",
+    "application/xhtml",
+    "*/*",
+]
+
+NON_HTML_CONTENT_TYPES = [
+    "application/ld+json",
+    "text/turtle",
+    "application/trig",
+    "application/rdf+xml",
+    "application/json",
+]
+
+FILE_TYPES = {
+    "application/ld+json": "jsonld",
+    "application/json": "json",
+    "text/turtle": "ttl",
+    "application/trig": "trig",
+    "application/rdf+xml": "rdf",
+}
+
 
 @pytest.fixture(scope="module")
 def apix_session():

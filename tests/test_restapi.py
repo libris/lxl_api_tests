@@ -33,9 +33,6 @@ def test_get_bib(session):
     bib_id = create_bib(session)
 
     expected_record_location = bib_id
-    expected_content_location = "{0}/data.jsonld".format(bib_id)
-    expected_document_header = "{0}".format(bib_id)
-    expected_link_header = "<{0}>; rel=describedby".format(bib_id)
 
     result = session.get(bib_id)
     assert result.status_code == 200
@@ -49,25 +46,52 @@ def test_get_bib(session):
     thing_sameas = thing['sameAs'][0]['@id'].replace('http://libris.kb.se', ROOT_URL)
     expected_thing_location = thing_id
 
-    # Record.sameAs
-    result = session.get(API_URL + "/" + record_sameas,
-                         allow_redirects=False)
-    assert result.status_code == 302
+    # Test each of the supported formats
+    for content_type in NON_HTML_CONTENT_TYPES:
+        result = session.get(bib_id, headers={"accept": content_type})
+        assert result.status_code == 200
 
-    location = result.headers['Location']
-    assert location == expected_record_location
+        # Response Content-Type header should contain Accept content type
+        assert content_type in result.headers["content-type"]
+        # Content-Location (e.g. <bib_id_url>/data.jsonld)
+        assert result.headers.get("content-location") == f"{bib_id}/data.{FILE_TYPES[content_type]}"
+        # https://www.w3.org/wiki/HTML/ChangeProposal25
+        #assert result.headers.get("document") == f"{bib_id}"
 
-    # Thing.@id
-    result = session.get(thing_id)
-    assert result.status_code == 200
+        if content_type != "application/json":
+            assert f"<{bib_id}>; rel=describedby" in result.headers.get("link")
 
-    # Thing.sameAs
-    result = session.get(thing_sameas,
-                         allow_redirects=False)
-    assert result.status_code == 302
+        assert len(result.content) > 100
+        if content_type in ["application/ld+json", "application/json"]:
+            assert json.loads(result.content)
 
-    location = result.headers['Location']
-    assert location == expected_thing_location
+        # "Convenience" URL without specifying Accept
+        result = session.get(f"{bib_id}/data.{FILE_TYPES[content_type]}")
+        assert result.status_code == 200
+        assert content_type in result.headers["content-type"]
+        assert len(result.content) > 100
+        if content_type in ["application/ld+json", "application/json"]:
+            assert json.loads(result.content)
+
+        # Record.sameAs
+        result = session.get(API_URL + "/" + record_sameas,
+                             allow_redirects=False, headers={"accept": content_type})
+        assert result.status_code == 302
+
+        location = result.headers['Location']
+        assert location == expected_record_location
+
+        # Thing.@id
+        result = session.get(thing_id, headers={"accept": content_type})
+        assert result.status_code == 200
+
+        # Thing.sameAs
+        result = session.get(thing_sameas, allow_redirects=False,
+                             headers={"accept": content_type})
+        assert result.status_code == 302
+
+        location = result.headers['Location']
+        assert location == expected_thing_location
 
     # Cleanup
     result = delete_record(session, bib_id)
@@ -392,6 +416,22 @@ def test_search(session):
     search_details = es_result['search']
     search_mappings = search_details['mapping']
     assert len(search_mappings) > 0
+
+
+def test_search_conneg(session):
+    search_endpoint = "/find"
+    limit = 1
+    query_params = {'q': 'mumintrollet',
+                    '_limit': limit}
+    url = ROOT_URL + search_endpoint
+
+    result = session.get(url, params=query_params)
+    assert result.status_code == 200
+
+    for content_type in NON_HTML_CONTENT_TYPES:
+        result = session.get(url, params=query_params, headers={"accept": content_type})
+        assert content_type in result.headers["content-type"], url
+        assert len(result.content) > 100, url
 
 
 def test_search_empty_sort_param(session):
