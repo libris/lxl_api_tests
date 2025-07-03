@@ -21,11 +21,10 @@ To be able to run without https against e.g. localhost, set:
 ## Running
 
 ```bash
-# Install dependencies
-$ virtualenv -p python3 .venv && source .venv/bin/activate && pip install -r requirements.txt
-# Run the tests
+# First install uv: https://github.com/astral-sh/uv
+# Then run the tests:
 $ LXLTESTING_LOGIN_URL=https://some.host LXLTESTING_USERNAME=username \
-      LXLTESTING_PASSWORD=password LXLTESTING_OAUTH_CLIENT_ID=client-id pytest
+      LXLTESTING_PASSWORD=password LXLTESTING_OAUTH_CLIENT_ID=client-id uv run pytest
 ```
 
 Environment variables can also be kept in a run configuration for this project if running the tests in an IDE.
