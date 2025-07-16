@@ -131,7 +131,7 @@ def test_new_hold_on_voyager_id(apix_session):
     marcxml_payload = _read_file(HOLD_FILE)
 
     # Write a new record
-    result = apix_session.put(APIX_URL + '0.1/cat/libris/bib/12141831/newhold',
+    result = apix_session.put(APIX_URL + '0.1/cat/libris/bib/18546404/newhold',
                               data=marcxml_payload)
 
     assert result.status_code == 201
@@ -156,7 +156,7 @@ def test_new_hold_on_xl_id(apix_session):
 
     # Write a new record
     result = apix_session.put(APIX_URL +
-                              '0.1/cat/libris/bib/cwpqbclp4x4n61k/newhold',
+                              '0.1/cat/libris/bib/wf77dvw71q66jh4/newhold',
                               data=marcxml_payload)
 
     assert result.status_code == 201
@@ -178,9 +178,9 @@ def test_new_hold_on_xl_id(apix_session):
 
 def test_search_isbn(apix_session):
     result = apix_session.get(APIX_URL +
-                              '0.1/cat/libris/search?isbn=9780141330464')
+                              '0.1/cat/libris/search?isbn=9789163885921')
     assert result.status_code == 200
-    assert 'Alice, who falls down a rabbit hole' in result.text
+    assert 'med illustrationer av Tove Jansson' in result.text
 
 
 def test_search_issn(apix_session):
