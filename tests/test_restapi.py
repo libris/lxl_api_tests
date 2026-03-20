@@ -503,8 +503,8 @@ def test_search_aggregates(session):
 def test_search_filtering(session):
     search_endpoint = "/find"
     limit = 2000
-    single_type = ['Manuscript']
-    many_types = ['Manuscript', 'Map', 'VideoRecording']
+    single_type = ['Monograph']
+    many_types = ['Monograph', 'Serial', 'Collection']
     bad_type = ['NonExistantType']
 
     # single type
@@ -553,13 +553,13 @@ def test_search_with_or_count(session):
     limit = 2000
 
     query_params_s = {'q': '*',
-                    '@type': ['SoundRecording'],
+                    '@type': ['Classification'],
                     '_limit': limit}
     query_params_v = {'q': '*',
-                    '@type': ['VideoRecording'],
+                    '@type': ['Country'],
                     '_limit': limit}
     query_params_sv = {'q': '*',
-                    '@type': ['SoundRecording', 'VideoRecording'],
+                    '@type': ['Classification', 'Country'],
                     '_limit': limit}
 
     # When
@@ -999,7 +999,7 @@ def test_context(session):
 
 def has_reference(x, ref, key=None):
     if isinstance(x, dict):
-        return any([has_reference(x[key], ref, key=key) for key in x])
+        return any([has_reference(x[key], ref, key=key) for key in x if key != '_categoryByCollection'])
     elif isinstance(x, list):
         return any([has_reference(val, ref) for val in x])
     else:
