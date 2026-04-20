@@ -71,55 +71,55 @@ def test_search_my_libraries(session):
     es_result = result.json()
     assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
 
-# def test_search_instance_type(session):
-#     query_params = {'_q': 'instanceType:DigitalResource',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 7000 and es_result['totalItems'] < 8000
-#
-# def test_search_work_find_category(session):
-#     query_params = {'_q': 'workCategory:"saogf:Sk%C3%B6nlitteratur"',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
-#
-# def test_search_work_identify_category(session):
-#     query_params = {'_q': 'workCategory:"saogf:Romaner"',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 200 and es_result['totalItems'] < 300
-#
-# def test_search_work_none_category(session):
-#     query_params = {'_q': 'workCategory:"saogf:Deckare"',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 20 and es_result['totalItems'] < 30
-#
-# def test_search_instance_category(session):
-#     query_params = {'_q': 'instanceCategory:"https://id.kb.se/term/saobf/Print"',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
+def test_search_instance_type(session):
+    query_params = {'_q': 'instanceType:DigitalResource',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 7000 and es_result['totalItems'] < 8000
+
+def test_search_work_find_category(session):
+    query_params = {'_q': 'workCategory:"saogf:Sk%C3%B6nlitteratur"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
+
+def test_search_work_identify_category(session):
+    query_params = {'_q': 'workCategory:"saogf:Romaner"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 200 and es_result['totalItems'] < 300
+
+def test_search_work_none_category(session):
+    query_params = {'_q': 'workCategory:"saogf:Deckare"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 20 and es_result['totalItems'] < 30
+
+def test_search_instance_category(session):
+    query_params = {'_q': 'instanceCategory:"https://id.kb.se/term/saobf/Print"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
 
 def test_search_language(session):
     query_params = {'_q': 'language:"lang:swe"',
@@ -191,60 +191,60 @@ def test_search_bibliography(session):
     es_result = result.json()
     assert es_result['totalItems'] > 100 and es_result['totalItems'] < 300
 
-# def test_search_work_type(session):
-#     query_params = {'_q': 'workType:Serial',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 50 and es_result['totalItems'] < 200
-#
-# def test_o_search_subject(session):
-#     app_config = {
-#         'defaultSiteFilters': [TYPE_WORK_FILTER],
-#         'relationFilters': [{'objectType': 'Concept', 'predicates': ['subject']}]
-#     }
-#     query_params = {'_o': 'https://id.kb.se/term/sao/Finansiering',
-#                     '_appConfig': json.dumps(app_config)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 50
-#     assert es_result['stats']['_predicates'][0]['totalItems'] > 50
-#
-# def test_o_search_instance_category(session):
-#     app_config = {
-#         'defaultSiteFilters': [TYPE_WORK_FILTER],
-#         'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:instanceCategory']}]
-#     }
-#     query_params = {'_o': 'https://id.kb.se/term/saobf/Print',
-#                     '_appConfig': json.dumps(app_config)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 5000
-#     assert es_result['stats']['_predicates'][0]['totalItems'] > 5000
-#
-# def test_o_search_work_category(session):
-#     app_config = {
-#         'defaultSiteFilters': [TYPE_WORK_FILTER],
-#         'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:workCategory']}]
-#     }
-#     query_params = {'_o': 'https://id.kb.se/term/saogf/Sk%C3%B6nlitteratur',
-#                     '_appConfig': json.dumps(app_config)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 300
-#     assert es_result['stats']['_predicates'][0]['totalItems'] > 300
+def test_search_work_type(session):
+    query_params = {'_q': 'workType:Serial',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 50 and es_result['totalItems'] < 200
+
+def test_o_search_subject(session):
+    app_config = {
+        'defaultSiteFilters': [TYPE_WORK_FILTER],
+        'relationFilters': [{'objectType': 'Concept', 'predicates': ['subject']}]
+    }
+    query_params = {'_o': 'https://id.kb.se/term/sao/Finansiering',
+                    '_appConfig': json.dumps(app_config)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 50
+    assert es_result['stats']['_predicates'][0]['totalItems'] > 50
+
+def test_o_search_instance_category(session):
+    app_config = {
+        'defaultSiteFilters': [TYPE_WORK_FILTER],
+        'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:instanceCategory']}]
+    }
+    query_params = {'_o': 'https://id.kb.se/term/saobf/Print',
+                    '_appConfig': json.dumps(app_config)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 5000
+    assert es_result['stats']['_predicates'][0]['totalItems'] > 5000
+
+def test_o_search_work_category(session):
+    app_config = {
+        'defaultSiteFilters': [TYPE_WORK_FILTER],
+        'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:workCategory']}]
+    }
+    query_params = {'_o': 'https://id.kb.se/term/saogf/Sk%C3%B6nlitteratur',
+                    '_appConfig': json.dumps(app_config)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 300
+    assert es_result['stats']['_predicates'][0]['totalItems'] > 300
 
 def test_o_p_search(session):
     query_params = {'_o': 'https://id.kb.se/term/sao/Finansiering',
@@ -391,18 +391,18 @@ def test_get_stats(session):
         statistics = {
             "sliceList": [
                 {"dimensionChain": ["rdf:type"], "itemLimit": 100},
-                # {"dimensionChain": ["instanceType"], "itemLimit": 100},
-                # {"dimensionChain": ["findCategory"], "itemLimit": 20,
-                #  "slice": {"dimensionChain": ["identifyCategory"], "itemLimit": 50}
-                #  },
-                # {"dimensionChain": ["instanceCategory"], "itemLimit": 100},
+                {"dimensionChain": ["instanceType"], "itemLimit": 100},
+                {"dimensionChain": ["findCategory"], "itemLimit": 20,
+                 "slice": {"dimensionChain": ["identifyCategory"], "itemLimit": 50}
+                 },
+                {"dimensionChain": ["instanceCategory"], "itemLimit": 100},
                 {"dimensionChain": ["language"], "itemLimit": 100, "connective": "OR"},
                 {"dimensionChain": ["itemHeldByOrg"], "itemLimit": 1000, "connective": "OR", "countTopLevelDocs": True},
                 {"dimensionChain": ["yearPublished"], "itemLimit": 500, "range": True},
                 {"dimensionChain": ["contributor"], "itemLimit": 20},
                 {"dimensionChain": ["subject"], "itemLimit": 100},
                 {"dimensionChain": ["bibliography"], "itemLimit": 200},
-                # {"dimensionChain": ["workType"], "itemLimit": 100}
+                {"dimensionChain": ["workType"], "itemLimit": 100}
             ]
         }
         app_config = {
@@ -428,17 +428,17 @@ def test_get_stats(session):
 
         assert sbd
 
-        # physical_resource = find_observation(sbd, 'librissearch:instanceType', 'https://id.kb.se/vocab/PhysicalResource')
-        # assert_observation(physical_resource, 5000)
-        #
-        # facklitteratur = find_observation(sbd, 'librissearch:findCategory','https://id.kb.se/term/saogf/Facklitteratur')
-        # assert_observation(facklitteratur, 5000)
-        #
-        # offentligt_tryck = find_observation(facklitteratur['sliceByDimension'], 'librissearch:identifyCategory','https://id.kb.se/term/saogf/Offentligt%20tryck')
-        # assert_observation(offentligt_tryck, 5000)
-        #
-        # print = find_observation(sbd, 'librissearch:instanceCategory', 'https://id.kb.se/term/saobf/Print')
-        # assert_observation(print, 5000)
+        physical_resource = find_observation(sbd, 'librissearch:instanceType', 'https://id.kb.se/vocab/PhysicalResource')
+        assert_observation(physical_resource, 5000)
+
+        facklitteratur = find_observation(sbd, 'librissearch:findCategory','https://id.kb.se/term/saogf/Facklitteratur')
+        assert_observation(facklitteratur, 5000)
+
+        offentligt_tryck = find_observation(facklitteratur['sliceByDimension'], 'librissearch:identifyCategory','https://id.kb.se/term/saogf/Offentligt%20tryck')
+        assert_observation(offentligt_tryck, 5000)
+
+        print = find_observation(sbd, 'librissearch:instanceCategory', 'https://id.kb.se/term/saobf/Print')
+        assert_observation(print, 5000)
 
         language = find_observation(sbd, 'language', 'https://id.kb.se/language/swe')
         assert_observation(language, 10000)
@@ -468,6 +468,6 @@ def test_get_stats(session):
         nb = find_observation(sbd, 'bibliography', 'https://libris.kb.se/library/NB')
         assert_observation(nb, 5000)
 
-        # monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
-        # assert_observation(monograph, 10000)
+        monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
+        assert_observation(monograph, 10000)
 
