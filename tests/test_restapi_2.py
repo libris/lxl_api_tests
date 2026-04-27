@@ -358,7 +358,7 @@ def test_suggest_for_filter(session):
 
 def test_get_search_mappings(session):
     query_params = {'_q': 'hej',
-                    '_r': 'itemHeldBy:"sigel:S"',
+                    '_r': 'library:"sigel:S"',
                     '_mappingOnly': True,
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
@@ -377,9 +377,9 @@ def test_get_search_mappings(session):
 
     assert q_mapping['property']['@id'] == 'https://id.kb.se/vocab/textQuery'
     assert q_mapping['equals'] == 'hej'
-    assert q_mapping['up']['@id'] == '/find?_q=&_r=itemHeldBy:%22sigel:S%22'
+    assert q_mapping['up']['@id'] == '/find?_q=&_r=library:%22sigel:S%22'
 
-    assert r_mapping['property']['@id'] == 'https://id.kb.se/ns/librissearch/itemHeldBy'
+    assert r_mapping['property']['@id'] == 'https://id.kb.se/ns/librissearch/library'
     assert r_mapping['equals']['@id'] == 'https://libris.kb.se/library/S'
     assert r_mapping['up']['@id'] == '/find?_q=hej&_r=' # TODO: Should not include empty _r?
 
