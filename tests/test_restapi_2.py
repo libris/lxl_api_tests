@@ -59,8 +59,8 @@ def test_search_with_configured_filter_aliases(session):
                                         'NOT excludePreliminary')
     assert total_works > filtered_works('existsImage',
                                          'image:*')
-    # assert total_works > filtered_works('freeOnline',
-    #                                      'instanceType:DigitalResource AND (usageAndAccessPolicy.label:gratis OR "associatedMedia.marc:publicNote":"fritt tillgänglig" OR usageAndAccessPolicy:("https://id.kb.se/policy/freely-available" OR "https://id.kb.se/policy/oa/gratis"))')
+    assert total_works > filtered_works('freeOnline',
+                                         'instanceType:DigitalResource AND (usageAndAccessPolicy.label:gratis OR "associatedMedia.marc:publicNote":"fritt tillgänglig" OR usageAndAccessPolicy:("https://id.kb.se/policy/freely-available" OR "https://id.kb.se/policy/oa/gratis"))')
 
 def test_search_my_libraries(session):
     query_params = {'_q': 'alias-myLibraries', '_alias-myLibraries': 'itemHeldByOrg:"sigel:org/KB"', '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
