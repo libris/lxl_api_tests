@@ -201,6 +201,42 @@ def test_search_work_type(session):
     es_result = result.json()
     assert es_result['totalItems'] > 50 and es_result['totalItems'] < 200
 
+def test_search_instance_record_created(session):
+    query_params = {'_q': 'instanceRecordCreated:1900-2100',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    num_works = es_result['totalItems']
+    # Should match all works
+    assert num_works > 17000
+
+    query_params = {'_q': 'type:Instance instanceRecordCreated:1900-2100',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    num_instances = es_result['totalItems']
+    # Should match all instances
+    assert num_instances > 17000
+
+    # Assume some instances to share the same linked work
+    assert num_instances > num_works
+
+def test_search_encoding_level(session):
+    query_params = {'_q': 'encodingLevel:"marc:fullLevel"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
+
 def test_o_search_subject(session):
     app_config = {
         'defaultSiteFilters': [TYPE_WORK_FILTER],
