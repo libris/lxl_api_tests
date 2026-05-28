@@ -495,13 +495,13 @@ def test_get_stats(session):
           "template": f"/find?_q=type:{type}+%7B%3FyearPublished%7D"
         }
 
-        lars_ahlstrom = find_observation(sbd, 'contributor', ROOT_URL + '/sq47c3sb51r8z7b#it')
+        lars_ahlstrom = find_observation(sbd, 'librissearch:contributor', ROOT_URL + '/sq47c3sb51r8z7b#it')
         assert_observation(lars_ahlstrom, 100)
 
         finansiering = find_observation(sbd, 'subject', 'https://id.kb.se/term/sao/Finansiering')
         assert_observation(finansiering, 50)
 
-        nb = find_observation(sbd, 'bibliography', 'https://libris.kb.se/library/NB')
+        nb = find_observation(sbd, 'librissearch:bibliography', 'https://libris.kb.se/library/NB')
         assert_observation(nb, 5000)
 
         monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
