@@ -237,6 +237,147 @@ def test_search_encoding_level(session):
     es_result = result.json()
     assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
 
+def test_search_dewey(session):
+    # classification[DdcClassfication].code + additionalClassificationDdc.code
+    query_params = {'_q': 'dewey:610.73707155 dewey:615.8207155',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: q82bfms20cgvmrm
+
+def test_search_title(session):
+    # hasTitle + relationship.entity.hasTitle + translationOf.hasTitle
+    query_params = {'_q': 'titel:("Nonchalans sjabb och dödliga fräknar" "The quality of sprawl" "A working forest")',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: vc55czd6447wmv1
+
+def test_search_isxn(session):
+    # identifiedBy[ISBN].value + identifiedBy[ISSN].value + identifiedBy[ISMN].value
+    query_params = {'_q': 'isxn:(9789100118969 OR 0002-6204 OR M004211915)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 3 # Matching IDs: j19pfzdcgngtf8dh, btmjhgbn240st8h, l4x9b1mx41nsqc5
+
+def test_search_linkisxn(session):
+    # identifiedBy[ISBN].value + indirectlyIdentifiedBy[ISBN].value
+    query_params = {'_q': 'linkisxn:(9138223325) ',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 2 # Matching IDs: 4ngg73bg5k4wk0b, 6phgbg8j1rm7v6d
+
+def test_search_linkisxn_2(session):
+    # identifiedBy[ISSN].value + marc:incorrectIssn
+    query_params = {'_q': 'linkisxn:(0375-250X) ',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 4 # Matching IDs: dxq5tnbq5qjc20k, n5ztm3v03xf1cv7, 1jb60g8c0wbsj5q, zg84xdm90nck7zf
+
+def test_search_linkisxn_3(session):
+    # identifiedBy[ISSN].value + marc:canceledIssn
+    query_params = {'_q': 'linkisxn:(0020-7292) ',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 2 # Matching IDs: 5ng5cz7h50swx3m, gzrplcts5twr5xg
+
+def test_search_linked_shelfmark(session):
+    query_params = {'_q': 'placering:(Sv2021)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 0
+
+def test_search_item_shelf(session):
+    # shelfMark.label + shelfLabel + physicalLocation
+    query_params = {'_q': 'placering:(Informatik och media Falkheimer Kurs)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: bvntnvqn4bwtdjm
+
+def test_search_item_subject(session):
+    query_params = {'_q': 'itemSubject:(C++)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 5 # Matching for example: 7qj91s6k2r7trj1
+
+def test_search_item_statement(session):
+    # hasNote.label
+    query_params = {'_q': 'beståndsuppgift:(Orig:s titel: Elverdronningens riddere - Den fortryllede skjold)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: 4nggzhjg0b6hlkk
+
+def test_search_internal_item_note(session):
+    # cataloguersNote
+    query_params = {'_q': 'hasInternalItemNote:(nb2009mon)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 10 # Matching for example: j19pfz0cg2xl1f2v
+
+def test_search_additional_item_information(session):
+    # immediateAcquisition.marc:sourceOfAcquisition
+    query_params = {'_q': 'hasAdditionalItemInformation:(Pliktex)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 20 # Matching for example: h08ndxddfg5v2pjf
+
+def test_search_item_information(session):
+    # hasNote.label + shelfMark.label + cataloguersNote
+    query_params = {'_q': 'bestånd:(Tryckningar finns Sv2009 nb2009mon)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 2 # Matching IDs: j19pfz0cg2xl1f2v, h1ttdg7t1zfr2mk
+
 def test_o_search_subject(session):
     app_config = {
         'defaultSiteFilters': [TYPE_WORK_FILTER],
@@ -379,7 +520,7 @@ def test_suggest(session):
     es_result = result.json()
     assert next((x for x in es_result['items'] if x['hasTitle'][0]['mainTitle'] == 'Grisfesten'), False)
 
-def test_suggest_for_filter(session):
+def test_suggest_for_contributor_filter(session):
     query_params = {'_q': 'contributor:(astrid li)',
                     '_suggest': True,
                     'cursor': 21,
@@ -391,6 +532,19 @@ def test_suggest_for_filter(session):
     es_result = result.json()
     astrid_lindgren = next((x for x in es_result['items'] if x['@id'] == ROOT_URL + '/fcrtpljz1qp2bdv#it'), False)
     assert astrid_lindgren and astrid_lindgren['_qualifiers']
+
+def test_suggest_for_bibliography_filter(session):
+    query_params = {'_q': 'bibliography:(nation)',
+                    '_suggest': True,
+                    'cursor': 20,
+                    '_limit': 5,
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+    es_result = result.json()
+    nationalbibliografin = next((x for x in es_result['items'] if x['@id'] == 'https://libris.kb.se/library/NB'), False)
+    assert nationalbibliografin and nationalbibliografin['_qualifiers']
 
 def test_get_search_mappings(session):
     query_params = {'_q': 'hej',
@@ -495,13 +649,13 @@ def test_get_stats(session):
           "template": f"/find?_q=type:{type}+%7B%3FyearPublished%7D"
         }
 
-        lars_ahlstrom = find_observation(sbd, 'contributor', ROOT_URL + '/sq47c3sb51r8z7b#it')
+        lars_ahlstrom = find_observation(sbd, 'librissearch:contributor', ROOT_URL + '/sq47c3sb51r8z7b#it')
         assert_observation(lars_ahlstrom, 100)
 
         finansiering = find_observation(sbd, 'subject', 'https://id.kb.se/term/sao/Finansiering')
         assert_observation(finansiering, 50)
 
-        nb = find_observation(sbd, 'bibliography', 'https://libris.kb.se/library/NB')
+        nb = find_observation(sbd, 'librissearch:bibliography', 'https://libris.kb.se/library/NB')
         assert_observation(nb, 5000)
 
         monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
