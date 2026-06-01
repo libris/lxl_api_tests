@@ -201,32 +201,31 @@ def test_search_work_type(session):
     es_result = result.json()
     assert es_result['totalItems'] > 50 and es_result['totalItems'] < 200
 
-# TODO: Activate once dev data have been reindexed
-# def test_search_instance_record_created(session):
-#     query_params = {'_q': 'instanceRecordCreated:1900-2100',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     num_works = es_result['totalItems']
-#     # Should match all works
-#     assert num_works > 17000
-#
-#     query_params = {'_q': 'type:Instance instanceRecordCreated:1900-2100',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     num_instances = es_result['totalItems']
-#     # Should match all instances
-#     assert num_instances > 17000
-#
-#     # Assume some instances to share the same linked work
-#     assert num_instances > num_works
+def test_search_instance_record_created(session):
+    query_params = {'_q': 'instanceRecordCreated:1900-2100',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    num_works = es_result['totalItems']
+    # Should match all works
+    assert num_works > 17000
+
+    query_params = {'_q': 'type:Instance instanceRecordCreated:1900-2100',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    num_instances = es_result['totalItems']
+    # Should match all instances
+    assert num_instances > 17000
+
+    # Assume some instances to share the same linked work
+    assert num_instances > num_works
 
 def test_search_encoding_level(session):
     query_params = {'_q': 'encodingLevel:"marc:fullLevel"',
@@ -238,17 +237,16 @@ def test_search_encoding_level(session):
     es_result = result.json()
     assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
 
-# TODO: Activate once dev data have been reindexed
-# def test_search_dewey(session):
-#     # classification[DdcClassfication].code + additionalClassificationDdc.code
-#     query_params = {'_q': 'dewey:610.73707155 dewey:615.8207155',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] == 1 # Matching ID: q82bfms20cgvmrm
+def test_search_dewey(session):
+    # classification[DdcClassfication].code + additionalClassificationDdc.code
+    query_params = {'_q': 'dewey:610.73707155 dewey:615.8207155',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: q82bfms20cgvmrm
 
 def test_search_title(session):
     # hasTitle + relationship.entity.hasTitle + translationOf.hasTitle
@@ -305,16 +303,15 @@ def test_search_linkisxn_3(session):
     es_result = result.json()
     assert es_result['totalItems'] == 2 # Matching IDs: 5ng5cz7h50swx3m, gzrplcts5twr5xg
 
-# TODO: Activate once dev data have been reloaded
-# def test_search_linked_shelfmark(session):
-#     query_params = {'_q': 'placering:(Sv2021)',
-#                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#     result = session.get(FIND_API,
-#                          params=query_params)
-#     assert result.status_code == 200
-#
-#     es_result = result.json()
-#     assert es_result['totalItems'] > 0
+def test_search_linked_shelfmark(session):
+    query_params = {'_q': 'placering:(Sv2021)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 0
 
 def test_search_item_shelf(session):
     # shelfMark.label + shelfLabel + physicalLocation
