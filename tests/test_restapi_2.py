@@ -250,7 +250,7 @@ def test_search_dewey(session):
 
 def test_search_title(session):
     # hasTitle + relationship.entity.hasTitle + translationOf.hasTitle
-    query_params = {'_q': 'titel:("Nonchalans sjabb och dödliga fräknar" "The quality of sprawl" "A working forest")',
+    query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar) titel:(The quality of sprawl) title:(A working forest)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
