@@ -82,17 +82,37 @@ def test_search_instance_type(session):
     assert es_result['totalItems'] > 7000 and es_result['totalItems'] < 8000
 
 def test_search_work_find_category(session):
-    query_params = {'_q': 'workCategory:"saogf:Sk%C3%B6nlitteratur"',
+    query_params = {'_q': 'workCategory:"saogf:Seriella%20publikationer"',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
+    assert es_result['totalItems'] > 80 and es_result['totalItems'] < 100
+
+def test_search_work_find_category_2(session):
+    query_params = {'_q': 'workCategory:(seriella publikationer)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 80 and es_result['totalItems'] < 100
 
 def test_search_work_identify_category(session):
     query_params = {'_q': 'workCategory:"saogf:Romaner"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 200 and es_result['totalItems'] < 300
+
+def test_search_work_identify_category_2(session):
+    query_params = {'_q': 'workCategory:(romaner)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
@@ -111,8 +131,28 @@ def test_search_work_none_category(session):
     es_result = result.json()
     assert es_result['totalItems'] > 20 and es_result['totalItems'] < 30
 
+def test_search_work_none_category_2(session):
+    query_params = {'_q': 'workCategory:(deckare)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 20 and es_result['totalItems'] < 30
+
 def test_search_instance_category(session):
     query_params = {'_q': 'instanceCategory:"https://id.kb.se/term/saobf/Print"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 9000 and es_result['totalItems'] < 10000
+
+def test_search_instance_category_2(session):
+    query_params = {'_q': 'instanceCategory:(tryck)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
