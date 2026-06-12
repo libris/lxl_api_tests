@@ -310,20 +310,40 @@ def test_search_isxn(session):
     es_result = result.json()
     assert es_result['totalItems'] == 3 # Matching IDs: j19pfzdcgngtf8dh, btmjhgbn240st8h, l4x9b1mx41nsqc5
 
-def test_search_linkisxn(session):
-    # identifiedBy[ISBN].value + indirectlyIdentifiedBy[ISBN].value
-    query_params = {'_q': 'linkisxn:(9138223325) ',
+def test_search_control_number(session):
+    query_params = {'_q': 'controlNumber:(197467)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] == 2 # Matching IDs: 4ngg73bg5k4wk0b, 6phgbg8j1rm7v6d
+    assert es_result['totalItems'] == 1 # wd6r4jm75f0xvk7
 
-def test_search_linkisxn_2(session):
+def test_search_control_number_2(session):
+    query_params = {'_q': 'controlNumber:(wd6r4jm75f0xvk7)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # wd6r4jm75f0xvk7
+
+#def test_search_identifier(session):
+#    # identifiedBy[ISBN].value + indirectlyIdentifiedBy[ISBN].value
+#    query_params = {'_q': 'identifier:(9138223325)',
+#                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+#    result = session.get(FIND_API,
+#                         params=query_params)
+#    assert result.status_code == 200
+#
+#    es_result = result.json()
+#    assert es_result['totalItems'] == 2 # Matching IDs: 4ngg73bg5k4wk0b, 6phgbg8j1rm7v6d
+
+def test_search_identifier_2(session):
     # identifiedBy[ISSN].value + marc:incorrectIssn
-    query_params = {'_q': 'linkisxn:(0375-250X) ',
+    query_params = {'_q': 'identifier:(0375-250X) ',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
@@ -332,9 +352,9 @@ def test_search_linkisxn_2(session):
     es_result = result.json()
     assert es_result['totalItems'] == 4 # Matching IDs: dxq5tnbq5qjc20k, n5ztm3v03xf1cv7, 1jb60g8c0wbsj5q, zg84xdm90nck7zf
 
-def test_search_linkisxn_3(session):
+def test_search_identifier_3(session):
     # identifiedBy[ISSN].value + marc:canceledIssn
-    query_params = {'_q': 'linkisxn:(0020-7292) ',
+    query_params = {'_q': 'identifier:(0020-7292)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
@@ -342,6 +362,17 @@ def test_search_linkisxn_3(session):
 
     es_result = result.json()
     assert es_result['totalItems'] == 2 # Matching IDs: 5ng5cz7h50swx3m, gzrplcts5twr5xg
+
+#def test_search_identifier_4(session):
+#    # meta.controlNumber + meta.identifiedBy[LibrisIIINumber].value + "fnurgel" ID
+#    query_params = {'_q': 'identifier:(197467 9138021854 wd6r4jm75f0xvk7)',
+#                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+#    result = session.get(FIND_API,
+#                         params=query_params)
+#    assert result.status_code == 200
+#
+#    es_result = result.json()
+#    assert es_result['totalItems'] == 1 # Matching IDs: wd6r4jm75f0xvk7
 
 def test_search_linked_shelfmark(session):
     query_params = {'_q': 'placering:(Sv2021)',
