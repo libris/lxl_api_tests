@@ -211,6 +211,27 @@ def test_search_contributor(session):
     es_result = result.json()
     assert es_result['totalItems'] > 100 and es_result['totalItems'] < 200
 
+def test_search_contributor_2(session):
+    # All query terms must match the same agent
+    query_params = {'_q': 'contributor:(lars andersson)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: p60wv08128rft37
+
+def test_search_contributor_3(session):
+    query_params = {'_q': 'contributor:lars contributor:andersson',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 5
+
 def test_search_subject(session):
     query_params = {'_q': 'subject:"sao:Arbetsmarknad"',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
@@ -290,7 +311,7 @@ def test_search_dewey(session):
 
 def test_search_title(session):
     # hasTitle + relationship.entity.hasTitle + translationOf.hasTitle
-    query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar) titel:(The quality of sprawl) title:(A working forest)',
+    query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar) titel:(The quality of sprawl) titel:(A working forest)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
@@ -298,6 +319,28 @@ def test_search_title(session):
 
     es_result = result.json()
     assert es_result['totalItems'] == 1 # Matching ID: vc55czd6447wmv1
+
+def test_search_title_2(session):
+    # This query should fail since hasTitle is indexed as a nested field in Elasticsearch meaning that all query terms must match the same title
+    query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar The quality of sprawl A working forest)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 0
+
+def test_search_title_3(session):
+    # hasPart.hasTitle + hasPart.translationOf.hasTitle + seriesMembership.inSeries.instanceOf.hasTitle
+    query_params = {'_q': 'titel:(I fullmånens sken) titel:(Once upon a bite) titel:(Harlequin lust)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: vd6792t6174w1z3
 
 def test_search_isxn(session):
     # identifiedBy[ISBN].value + identifiedBy[ISSN].value + identifiedBy[ISMN].value
