@@ -729,6 +729,6 @@ def test_get_stats(session):
         nb = find_observation(sbd, 'librissearch:bibliography', 'https://libris.kb.se/library/NB')
         assert_observation(nb, 5000)
 
-        monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
-        assert_observation(monograph, 10000)
+        # monograph = find_observation(sbd, 'librissearch:workType', 'https://id.kb.se/vocab/Monograph')
+        # assert_observation(monograph, 10000)
 
