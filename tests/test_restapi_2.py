@@ -320,15 +320,15 @@ def test_search_control_number(session):
     es_result = result.json()
     assert es_result['totalItems'] == 1 # wd6r4jm75f0xvk7
 
-#def test_search_control_number_2(session):
-#    query_params = {'_q': 'controlNumber:(wd6r4jm75f0xvk7)',
-#                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#    result = session.get(FIND_API,
-#                         params=query_params)
-#    assert result.status_code == 200
-#
-#    es_result = result.json()
-#    assert es_result['totalItems'] == 1 # wd6r4jm75f0xvk7
+def test_search_control_number_2(session):
+   query_params = {'_q': 'controlNumber:(wd6r4jm75f0xvk7)',
+                   '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+   result = session.get(FIND_API,
+                        params=query_params)
+   assert result.status_code == 200
+
+   es_result = result.json()
+   assert es_result['totalItems'] == 1 # wd6r4jm75f0xvk7
 
 def test_search_identifier(session):
     # identifiedBy[ISBN].value + indirectlyIdentifiedBy[ISBN].value
@@ -363,16 +363,16 @@ def test_search_identifier_3(session):
     es_result = result.json()
     assert es_result['totalItems'] == 2 # Matching IDs: 5ng5cz7h50swx3m, gzrplcts5twr5xg
 
-#def test_search_identifier_4(session):
-#    # meta.controlNumber + meta.identifiedBy[LibrisIIINumber].value + "fnurgel" ID
-#    query_params = {'_q': 'identifier:(197467 9138021854 wd6r4jm75f0xvk7)',
-#                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
-#    result = session.get(FIND_API,
-#                         params=query_params)
-#    assert result.status_code == 200
-#
-#    es_result = result.json()
-#    assert es_result['totalItems'] == 1 # Matching IDs: wd6r4jm75f0xvk7
+def test_search_identifier_4(session):
+   # meta.controlNumber + meta.identifiedBy[LibrisIIINumber].value + "fnurgel" ID
+   query_params = {'_q': 'identifier:(197467 9138021854 wd6r4jm75f0xvk7)',
+                   '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+   result = session.get(FIND_API,
+                        params=query_params)
+   assert result.status_code == 200
+
+   es_result = result.json()
+   assert es_result['totalItems'] == 1 # Matching IDs: wd6r4jm75f0xvk7
 
 def test_search_linked_shelfmark(session):
     query_params = {'_q': 'placering:(Sv2021)',
