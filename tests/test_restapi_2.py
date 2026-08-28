@@ -344,14 +344,14 @@ def test_search_title_3(session):
 
 def test_search_isxn(session):
     # identifiedBy[ISBN].value + identifiedBy[ISSN].value + identifiedBy[ISMN].value
-    query_params = {'_q': 'isxn:(9789100118969 OR 0002-6204 OR M004211915)',
+    query_params = {'_q': 'isxn:(9789100118969 OR 0002-6204 OR 9790201843551)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] == 3 # Matching IDs: j19pfzdcgngtf8dh, btmjhgbn240st8h, l4x9b1mx41nsqc5
+    assert es_result['totalItems'] == 3 # Matching IDs: j19pfzdcgngtf8dh, btmjhgbn240st8h, 6qjsprmj59rncbh
 
 def test_search_control_number(session):
     query_params = {'_q': 'controlNumber:(197467)',
