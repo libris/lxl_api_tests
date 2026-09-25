@@ -172,7 +172,7 @@ def test_search_language(session):
     assert es_result['totalItems'] > 16000 and es_result['totalItems'] < 17000
 
 def test_search_library(session):
-    query_params = {'_q': 'itemHeldByOrg:"sigel:org/KB"',
+    query_params = {'_q': 'bibliotek:"sigel:org/KB"',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
     result = session.get(FIND_API,
                          params=query_params)
@@ -180,6 +180,36 @@ def test_search_library(session):
 
     es_result = result.json()
     assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
+
+def test_search_library_2(session):
+    query_params = {'_q': 'bibliotek:"sigel:S"',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 300 and es_result['totalItems'] < 400
+
+def test_free_text_search_library(session):
+    query_params = {'_q': 'bibliotek:(biblioteken i göteborg)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 100 and es_result['totalItems'] < 120
+
+def test_free_text_search_library_2(session):
+    query_params = {'_q': 'bibliotek:(biblioteken i göteborg e-böcker)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: 9tm33x9m59807h8
 
 def test_search_year(session):
     query_params = {'_q': 'yearPublished:2014',
@@ -395,6 +425,17 @@ def test_search_item_shelf(session):
     es_result = result.json()
     assert es_result['totalItems'] == 1 # Matching ID: bvntnvqn4bwtdjm
 
+def test_search_item_shelf_2(session):
+    # availability
+    query_params = {'_q': 'placering:(Ej fjärrlån)',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 50
+
 def test_search_item_subject(session):
     query_params = {'_q': 'itemSubject:(C++)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
@@ -404,6 +445,16 @@ def test_search_item_subject(session):
 
     es_result = result.json()
     assert es_result['totalItems'] > 5 # Matching for example: 7qj91s6k2r7trj1
+
+def test_search_linked_item_subject(session):
+    query_params = {'_q': 'itemSubject:matlagning',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: h0sqqpgt2bp86mx
 
 def test_search_item_statement(session):
     # hasNote.label
