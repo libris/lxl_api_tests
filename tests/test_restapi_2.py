@@ -219,7 +219,18 @@ def test_search_subject(session):
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] > 40 and es_result['totalItems'] < 60
+    assert es_result['totalItems'] > 70 and es_result['totalItems'] < 90
+
+def test_free_text_search_subject(session):
+    query_params = {'_q': 'subject:arbetsmarknad',
+                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] > 150
+
 
 def test_search_bibliography(session):
     query_params = {'_q': 'bibliography:"sigel:KVIN"',
@@ -723,7 +734,7 @@ def test_get_stats(session):
         lars_ahlstrom = find_observation(sbd, 'librissearch:contributor', ROOT_URL + '/sq47c3sb51r8z7b#it')
         assert_observation(lars_ahlstrom, 100)
 
-        finansiering = find_observation(sbd, 'subject', 'https://id.kb.se/term/sao/Finansiering')
+        finansiering = find_observation(sbd, 'librissearch:subject', 'https://id.kb.se/term/sao/Finansiering')
         assert_observation(finansiering, 50)
 
         nb = find_observation(sbd, 'librissearch:bibliography', 'https://libris.kb.se/library/NB')
