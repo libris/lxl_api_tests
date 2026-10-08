@@ -417,6 +417,37 @@ def test_search_identifier_4(session):
    es_result = result.json()
    assert es_result['totalItems'] == 1 # Matching IDs: wd6r4jm75f0xvk7
 
+def test_search_isbn_variants(session):
+    for filter in ['identifier', 'isxn', 'isbn']:
+        for value in ['9789178034239',
+                      '917803423X',
+                      '978-917-8034-239',
+                      '917-8034-23X',
+                      '9789178034*',
+                      '9178034*',
+                      '978-917-8034*',
+                      '917-8034*']:
+            query_params = {'_q': f'{filter}:{value}',
+                            '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+            result = session.get(FIND_API,
+                                 params=query_params)
+            assert result.status_code == 200
+
+            es_result = result.json()
+            assert es_result['totalItems'] == 1 # 0hr5wft9x7tm6kwc
+
+def test_search_issn_variants(session):
+    for search_filter in ['identifier', 'isxn', 'issn']:
+        for value in ['0002-6204', '00026204', '0002-62*', '000262*']:
+            query_params = {'_q': f'{search_filter}:{value}',
+                            '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+            result = session.get(FIND_API,
+                                 params=query_params)
+            assert result.status_code == 200
+
+            es_result = result.json()
+            assert es_result['totalItems'] == 1 # Matching ID: btmjhgbn240st8h
+
 def test_search_linked_shelfmark(session):
     query_params = {'_q': 'placering:(Sv2021)',
                     '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
