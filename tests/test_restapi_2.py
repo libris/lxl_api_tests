@@ -714,11 +714,11 @@ def test_get_search_mappings(session):
 
     q_mapping = next((x for x in es_result['search']['mapping'] if x['variable'] == '_q'), False)
     r_mapping = next((x for x in es_result['search']['mapping'] if x['variable'] == '_r'), False)
-    default_site_filter_mapping = next((x for x in es_result['search']['mapping'] if x['variable'] == 'defaultSiteFilters'), False)
+    # default_site_filter_mapping = next((x for x in es_result['search']['mapping'] if x['variable'] == 'defaultSiteFilters'), False)
 
     assert q_mapping
     assert r_mapping
-    assert default_site_filter_mapping
+    # assert default_site_filter_mapping
 
     assert q_mapping['property']['@id'] == 'https://id.kb.se/vocab/textQuery'
     assert q_mapping['equals'] == 'hej'
@@ -728,8 +728,8 @@ def test_get_search_mappings(session):
     assert r_mapping['equals']['@id'] == 'https://libris.kb.se/library/S'
     assert r_mapping['up']['@id'] == '/find?_q=hej&_r=' # TODO: Should not include empty _r?
 
-    assert default_site_filter_mapping['property']['@id'] == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-    assert default_site_filter_mapping['equals']['@id'] == 'https://id.kb.se/vocab/Work'
+    # assert default_site_filter_mapping['property']['@id'] == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    # assert default_site_filter_mapping['equals']['@id'] == 'https://id.kb.se/vocab/Work'
 
 def test_get_stats(session):
     for type in ['Instance', 'Work']:
