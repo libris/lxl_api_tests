@@ -2,25 +2,55 @@ from conf_util import *
 
 pytestmark = pytest.mark.dev
 
-TYPE_WORK_FILTER={'filter': '"rdf:type":Work'}
+TYPE_WORK='"rdf:type":Work'
+
 NOT_SWEPUB_FILTER={'filter': 'NOT meta.inDataset:"https://id.kb.se/dataset/swepub"'}
 NOT_UPPSOK_FILTER={'filter': 'NOT meta.inDataset:"https://id.kb.se/dataset/uppsok"'}
-DEFAULT_SITE_FILTERS = {'defaultSiteFilters': [TYPE_WORK_FILTER, NOT_SWEPUB_FILTER, NOT_UPPSOK_FILTER]}
+
+DEFAULT_FILTERS = {
+    'defaultTypeFilter': TYPE_WORK,
+    'defaultSiteFilters': [NOT_SWEPUB_FILTER, NOT_UPPSOK_FILTER]
+}
 
 FIND_API = ROOT_URL + "/find"
 
-def test_default_work_filter(session):
-    query_params = {'_q': '', '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+def test_default_site_filters(session):
+    query_params = {'_q': '', '_appConfig': json.dumps(DEFAULT_FILTERS)}
 
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
 
     es_result = result.json()
-    assert es_result['totalItems'] > 17000
+    assert es_result['totalItems'] > 17000 and es_result['totalItems'] < 18000
+
+def test_default_site_filters_for_swepub(session):
+    default_filters = {
+        'defaultTypeFilter': TYPE_WORK,
+        'defaultSiteFilters': [
+            {'filter': 'meta.inDataset:"https://id.kb.se/dataset/swepub"', 'applyTo': ['Creation', 'Agent']},
+            {'filter': 'inScheme:"https://id.kb.se/term/swepub"', 'applyTo': ['Concept']}
+        ]
+    }
+
+    for type in ['Work', 'Instance', 'Agent', 'Concept']:
+        query_params = {'_q': f'type:{type}',
+                        '_appConfig': json.dumps(default_filters)}
+        result = session.get(FIND_API,
+                             params=query_params)
+        assert result.status_code == 200
+
+        es_result = result.json()
+
+        if type == 'Instance' or type == 'Work':
+            assert es_result['totalItems'] > 20000 and es_result['totalItems'] < 30000
+        if type == 'Agent':
+            assert es_result['totalItems'] == 0
+        if type == 'Concept':
+            assert es_result['totalItems'] > 80 and es_result['totalItems'] < 100
 
 def test_exists_embedded_single_vs_multiple_instances(session):
-    query_params = {'_q': 'grisfesten', '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+    query_params = {'_q': 'grisfesten', '_appConfig': json.dumps(DEFAULT_FILTERS)}
 
     result = session.get(FIND_API,
                          params=query_params)
@@ -33,7 +63,7 @@ def test_exists_embedded_single_vs_multiple_instances(session):
     assert exists_work_with_multiple_instances and exists_work_with_single_instance
 
 def test_search_with_configured_filter_aliases(session):
-    query_params = {'_q': '', '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+    query_params = {'_q': '', '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -43,7 +73,7 @@ def test_search_with_configured_filter_aliases(session):
 
     def filtered_works(alias, filter):
         filter_aliases = {'filterAliases': [{'alias': alias, 'filter': filter}]}
-        config = DEFAULT_SITE_FILTERS | filter_aliases
+        config = DEFAULT_FILTERS | filter_aliases
         q_params = {'_q': alias,
                     '_appConfig': json.dumps(config)}
         res = session.get(FIND_API,
@@ -66,7 +96,7 @@ def test_search_with_configured_filter_aliases(session):
                                          'instanceType:DigitalResource AND (usageAndAccessPolicy.label:gratis OR "associatedMedia.marc:publicNote":"fritt tillgänglig" OR usageAndAccessPolicy:("https://id.kb.se/policy/freely-available" OR "https://id.kb.se/policy/oa/gratis"))')
 
 def test_search_my_libraries(session):
-    query_params = {'_q': 'alias-myLibraries', '_alias-myLibraries': 'itemHeldByOrg:"sigel:org/KB"', '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+    query_params = {'_q': 'alias-myLibraries', '_alias-myLibraries': 'itemHeldByOrg:"sigel:org/KB"', '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -76,7 +106,7 @@ def test_search_my_libraries(session):
 
 def test_search_instance_type(session):
     query_params = {'_q': 'instanceType:DigitalResource',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -86,7 +116,7 @@ def test_search_instance_type(session):
 
 def test_search_work_find_category(session):
     query_params = {'_q': 'workCategory:"saogf:Seriella%20publikationer"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -96,7 +126,7 @@ def test_search_work_find_category(session):
 
 def test_search_work_find_category_2(session):
     query_params = {'_q': 'workCategory:(seriella publikationer)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -106,7 +136,7 @@ def test_search_work_find_category_2(session):
 
 def test_search_work_identify_category(session):
     query_params = {'_q': 'workCategory:"saogf:Romaner"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -116,7 +146,7 @@ def test_search_work_identify_category(session):
 
 def test_search_work_identify_category_2(session):
     query_params = {'_q': 'workCategory:(romaner)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -126,7 +156,7 @@ def test_search_work_identify_category_2(session):
 
 def test_search_work_none_category(session):
     query_params = {'_q': 'workCategory:"saogf:Deckare"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -136,7 +166,7 @@ def test_search_work_none_category(session):
 
 def test_search_work_none_category_2(session):
     query_params = {'_q': 'workCategory:(deckare)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -146,7 +176,7 @@ def test_search_work_none_category_2(session):
 
 def test_search_instance_category(session):
     query_params = {'_q': 'instanceCategory:"https://id.kb.se/term/saobf/Print"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -156,7 +186,7 @@ def test_search_instance_category(session):
 
 def test_search_instance_category_2(session):
     query_params = {'_q': 'instanceCategory:(tryck)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -166,7 +196,7 @@ def test_search_instance_category_2(session):
 
 def test_search_language(session):
     query_params = {'_q': 'language:"lang:swe"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -176,7 +206,7 @@ def test_search_language(session):
 
 def test_search_library(session):
     query_params = {'_q': 'itemHeldByOrg:"sigel:org/KB"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -186,7 +216,7 @@ def test_search_library(session):
 
 def test_search_year(session):
     query_params = {'_q': 'yearPublished:2014',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -196,7 +226,7 @@ def test_search_year(session):
 
 def test_search_year_interval(session):
     query_params = {'_q': 'yearPublished:2000-2010',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -206,7 +236,7 @@ def test_search_year_interval(session):
 
 def test_search_contributor(session):
     query_params = {'_q': 'contributor:"libris:sq47c3sb51r8z7b%23it"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -217,7 +247,7 @@ def test_search_contributor(session):
 def test_search_contributor_2(session):
     # All query terms must match the same agent
     query_params = {'_q': 'contributor:(lars andersson)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -227,7 +257,7 @@ def test_search_contributor_2(session):
 
 def test_search_contributor_3(session):
     query_params = {'_q': 'contributor:lars contributor:andersson',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -237,7 +267,7 @@ def test_search_contributor_3(session):
 
 def test_search_subject(session):
     query_params = {'_q': 'subject:"sao:Arbetsmarknad"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -247,7 +277,7 @@ def test_search_subject(session):
 
 def test_free_text_search_subject(session):
     query_params = {'_q': 'subject:arbetsmarknad',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -255,10 +285,9 @@ def test_free_text_search_subject(session):
     es_result = result.json()
     assert es_result['totalItems'] > 150
 
-
 def test_search_bibliography(session):
     query_params = {'_q': 'bibliography:"sigel:KVIN"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -268,7 +297,7 @@ def test_search_bibliography(session):
 
 def test_search_work_type(session):
     query_params = {'_q': 'workType:Serial',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -278,7 +307,7 @@ def test_search_work_type(session):
 
 def test_search_instance_record_created(session):
     query_params = {'_q': 'instanceRecordCreated:1900-2100',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -289,7 +318,7 @@ def test_search_instance_record_created(session):
     assert num_works > 17000
 
     query_params = {'_q': 'type:Instance instanceRecordCreated:1900-2100',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -304,7 +333,7 @@ def test_search_instance_record_created(session):
 
 def test_search_encoding_level(session):
     query_params = {'_q': 'encodingLevel:"marc:fullLevel"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -315,7 +344,7 @@ def test_search_encoding_level(session):
 def test_search_dewey(session):
     # classification[DdcClassfication].code + additionalClassificationDdc.code
     query_params = {'_q': 'dewey:610.73707155 dewey:615.8207155',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -326,7 +355,7 @@ def test_search_dewey(session):
 def test_search_title(session):
     # hasTitle + relationship.entity.hasTitle + translationOf.hasTitle
     query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar) titel:(The quality of sprawl) titel:(A working forest)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -337,7 +366,7 @@ def test_search_title(session):
 def test_search_title_2(session):
     # This query should fail since hasTitle is indexed as a nested field in Elasticsearch meaning that all query terms must match the same title
     query_params = {'_q': 'titel:(Nonchalans sjabb och dödliga fräknar The quality of sprawl A working forest)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -348,7 +377,7 @@ def test_search_title_2(session):
 def test_search_title_3(session):
     # hasPart.hasTitle + hasPart.translationOf.hasTitle + seriesMembership.inSeries.instanceOf.hasTitle
     query_params = {'_q': 'titel:(I fullmånens sken) titel:(Once upon a bite) titel:(Harlequin lust)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -359,7 +388,7 @@ def test_search_title_3(session):
 def test_search_isxn(session):
     # identifiedBy[ISBN].value + identifiedBy[ISSN].value + identifiedBy[ISMN].value
     query_params = {'_q': 'isxn:(9789100118969 OR 0002-6204 OR 9790201843551)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -369,7 +398,7 @@ def test_search_isxn(session):
 
 def test_search_control_number(session):
     query_params = {'_q': 'controlNumber:(197467)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -379,7 +408,7 @@ def test_search_control_number(session):
 
 def test_search_control_number_2(session):
    query_params = {'_q': 'controlNumber:(wd6r4jm75f0xvk7)',
-                   '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                   '_appConfig': json.dumps(DEFAULT_FILTERS)}
    result = session.get(FIND_API,
                         params=query_params)
    assert result.status_code == 200
@@ -390,7 +419,7 @@ def test_search_control_number_2(session):
 def test_search_identifier(session):
     # identifiedBy[ISBN].value + indirectlyIdentifiedBy[ISBN].value
     query_params = {'_q': 'identifier:(9138223325)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -401,7 +430,7 @@ def test_search_identifier(session):
 def test_search_identifier_2(session):
     # identifiedBy[ISSN].value + marc:incorrectIssn
     query_params = {'_q': 'identifier:(0375-250X) ',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -412,7 +441,7 @@ def test_search_identifier_2(session):
 def test_search_identifier_3(session):
     # identifiedBy[ISSN].value + marc:canceledIssn
     query_params = {'_q': 'identifier:(0020-7292)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -423,7 +452,7 @@ def test_search_identifier_3(session):
 def test_search_identifier_4(session):
    # meta.controlNumber + meta.identifiedBy[LibrisIIINumber].value + "fnurgel" ID
    query_params = {'_q': 'identifier:(197467 9138021854 wd6r4jm75f0xvk7)',
-                   '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                   '_appConfig': json.dumps(DEFAULT_FILTERS)}
    result = session.get(FIND_API,
                         params=query_params)
    assert result.status_code == 200
@@ -442,7 +471,7 @@ def test_search_isbn_variants(session):
                       '978-917-8034*',
                       '917-8034*']:
             query_params = {'_q': f'{filter}:{value}',
-                            '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                            '_appConfig': json.dumps(DEFAULT_FILTERS)}
             result = session.get(FIND_API,
                                  params=query_params)
             assert result.status_code == 200
@@ -454,7 +483,7 @@ def test_search_issn_variants(session):
     for search_filter in ['identifier', 'isxn', 'issn']:
         for value in ['0002-6204', '00026204', '0002-62*', '000262*']:
             query_params = {'_q': f'{search_filter}:{value}',
-                            '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                            '_appConfig': json.dumps(DEFAULT_FILTERS)}
             result = session.get(FIND_API,
                                  params=query_params)
             assert result.status_code == 200
@@ -464,7 +493,7 @@ def test_search_issn_variants(session):
 
 def test_search_linked_shelfmark(session):
     query_params = {'_q': 'placering:(Sv2021)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -475,7 +504,7 @@ def test_search_linked_shelfmark(session):
 def test_search_item_shelf(session):
     # shelfMark.label + shelfLabel + physicalLocation
     query_params = {'_q': 'placering:(Informatik och media Falkheimer Kurs)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -485,7 +514,7 @@ def test_search_item_shelf(session):
 
 def test_search_item_subject(session):
     query_params = {'_q': 'itemSubject:(C++)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -496,7 +525,7 @@ def test_search_item_subject(session):
 def test_search_item_statement(session):
     # hasNote.label
     query_params = {'_q': 'beståndsuppgift:(Orig:s titel: Elverdronningens riddere - Den fortryllede skjold)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -507,7 +536,7 @@ def test_search_item_statement(session):
 def test_search_internal_item_note(session):
     # cataloguersNote
     query_params = {'_q': 'hasInternalItemNote:(nb2009mon)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -518,7 +547,7 @@ def test_search_internal_item_note(session):
 def test_search_additional_item_information(session):
     # immediateAcquisition.marc:sourceOfAcquisition
     query_params = {'_q': 'hasAdditionalItemInformation:(Pliktex)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -529,7 +558,7 @@ def test_search_additional_item_information(session):
 def test_search_item_information(session):
     # hasNote.label + shelfMark.label + cataloguersNote
     query_params = {'_q': 'bestånd:(Tryckningar finns Sv2009 nb2009mon)',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -541,7 +570,7 @@ def test_o_search_subject(session):
     relation_filters = {
         'relationFilters': [{'objectType': 'Concept', 'predicates': ['subject']}]
     }
-    app_config = DEFAULT_SITE_FILTERS | relation_filters
+    app_config = DEFAULT_FILTERS | relation_filters
     query_params = {'_o': 'https://id.kb.se/term/sao/Finansiering',
                     '_appConfig': json.dumps(app_config)}
     result = session.get(FIND_API,
@@ -554,7 +583,7 @@ def test_o_search_subject(session):
 
 def test_o_search_instance_category(session):
     relation_filters = {'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:instanceCategory']}]}
-    app_config = DEFAULT_SITE_FILTERS | relation_filters
+    app_config = DEFAULT_FILTERS | relation_filters
     query_params = {'_o': 'https://id.kb.se/term/saobf/Print',
                     '_appConfig': json.dumps(app_config)}
     result = session.get(FIND_API,
@@ -567,7 +596,7 @@ def test_o_search_instance_category(session):
 
 def test_o_search_work_category(session):
     relation_filters = {'relationFilters': [{'objectType': 'Concept', 'predicates': ['librissearch:workCategory']}]}
-    app_config = DEFAULT_SITE_FILTERS | relation_filters
+    app_config = DEFAULT_FILTERS | relation_filters
     query_params = {'_o': 'https://id.kb.se/term/saogf/Sk%C3%B6nlitteratur',
                     '_appConfig': json.dumps(app_config)}
     result = session.get(FIND_API,
@@ -581,7 +610,7 @@ def test_o_search_work_category(session):
 def test_o_p_search(session):
     query_params = {'_o': 'https://id.kb.se/term/sao/Finansiering',
                     '_p': 'fieldOfActivity',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -591,7 +620,7 @@ def test_o_p_search(session):
 
 def test_r_search(session):
     query_params = {'_r': 'itemHeldBy:"sigel:S"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -602,7 +631,7 @@ def test_r_search(session):
 def test_q_r_search(session):
     query_params = {'_q': 'grisfesten',
                     '_r': 'itemHeldByOrg:"sigel:org/UUB"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -612,7 +641,7 @@ def test_q_r_search(session):
 
 def test_like_search(session):
     query_params = {'_q': 'contributor:"libris:tr579gmc1g104f7#it"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -621,7 +650,7 @@ def test_like_search(session):
     exact_total_items = es_result['totalItems']
 
     query_params = {'_q': 'contributor~"libris:tr579gmc1g104f7#it"',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -633,7 +662,7 @@ def test_like_search(session):
 
 def test_and_search(session):
     query_params = {'_q': 'language:"lang:nor" yearPublished:1989',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -643,7 +672,7 @@ def test_and_search(session):
 
 def test_or_search(session):
     query_params = {'_q': 'language:"lang:nor" OR yearPublished:1989',
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -654,7 +683,7 @@ def test_or_search(session):
 def test_not_search(session):
     def total_items(q):
         query_params = {'_q': q,
-                        '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                        '_appConfig': json.dumps(DEFAULT_FILTERS)}
         result = session.get(FIND_API,
                              params=query_params)
         assert result.status_code == 200
@@ -668,7 +697,7 @@ def test_suggest(session):
                     '_suggest': True,
                     'cursor': 5,
                     '_limit': 5,
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -680,7 +709,7 @@ def test_suggest_for_contributor_filter(session):
                     '_suggest': True,
                     'cursor': 21,
                     '_limit': 5,
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -693,7 +722,7 @@ def test_suggest_for_bibliography_filter(session):
                     '_suggest': True,
                     'cursor': 20,
                     '_limit': 5,
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -705,7 +734,7 @@ def test_get_search_mappings(session):
     query_params = {'_q': 'hej',
                     '_r': 'library:"sigel:S"',
                     '_mappingOnly': True,
-                    '_appConfig': json.dumps(DEFAULT_SITE_FILTERS)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
