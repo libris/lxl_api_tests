@@ -83,18 +83,19 @@ def test_search_with_configured_filter_aliases(session):
         return es_res['totalItems']
 
     assert total_works > filtered_works('excludeEplikt',
-                                         'NOT (bibliography:"sigel:EPLK" AND itemHeldBy:"sigel:APIS" AND reverseLinks.totalItemsByRelation.itemOf.instanceOf=1)')
+                                         'NOT (bibliography:"sigel:EPLK" AND itemHeldBy:"sigel:APIS" AND reverseLinks.totalItemsByRelation.itemOf.instanceOf=1)') > 0
     assert total_works == filtered_works('includeEplikt',
                                         'NOT excludeEplikt')
     assert total_works > filtered_works('excludePreliminary',
-                                         'NOT encodingLevel:("marc:PartialPreliminaryLevel" OR "marc:PrepublicationLevel")')
+                                         'NOT encodingLevel:("marc:PartialPreliminaryLevel" OR "marc:PrepublicationLevel")') > 0
     assert total_works == filtered_works('includePreliminary',
                                         'NOT excludePreliminary')
     assert total_works > filtered_works('existsImage',
-                                         'image:*')
+                                         'image:*') > 0
     assert total_works > filtered_works('freeOnline',
-                                         'instanceType:DigitalResource AND (usageAndAccessPolicy.label:gratis OR "associatedMedia.marc:publicNote":"fritt tillgänglig" OR usageAndAccessPolicy:("https://id.kb.se/policy/freely-available" OR "https://id.kb.se/policy/oa/gratis"))')
-
+                                         'instanceType:DigitalResource AND (usageAndAccessPolicy.label:gratis OR "associatedMedia.marc:publicNote":"fritt tillgänglig" OR usageAndAccessPolicy:("https://id.kb.se/policy/freely-available" OR "https://id.kb.se/policy/oa/gratis"))') > 0
+    assert total_works > filtered_works('_collections',
+                                        'type:Bibliography comment:()') > 0
 def test_search_my_libraries(session):
     query_params = {'_q': 'alias-myLibraries', '_alias-myLibraries': 'itemHeldByOrg:"sigel:org/KB"', '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
