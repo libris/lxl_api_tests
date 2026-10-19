@@ -217,7 +217,7 @@ def test_search_library(session):
 
 def test_search_library_2(session):
     query_params = {'_q': 'bibliotek:"sigel:S"',
-                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -227,7 +227,7 @@ def test_search_library_2(session):
 
 def test_free_text_search_library(session):
     query_params = {'_q': 'bibliotek:(biblioteken i göteborg)',
-                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -237,7 +237,7 @@ def test_free_text_search_library(session):
 
 def test_free_text_search_library_2(session):
     query_params = {'_q': 'bibliotek:(biblioteken i göteborg e-böcker)',
-                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -546,7 +546,7 @@ def test_search_item_shelf(session):
 def test_search_item_shelf_2(session):
     # availability
     query_params = {'_q': 'placering:(Ej fjärrlån)',
-                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
@@ -566,7 +566,7 @@ def test_search_item_subject(session):
 
 def test_search_linked_item_subject(session):
     query_params = {'_q': 'itemSubject:matlagning',
-                    '_appConfig': json.dumps(DEFAULT_WORK_FILTER)}
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
     result = session.get(FIND_API,
                          params=query_params)
     assert result.status_code == 200
