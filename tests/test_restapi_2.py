@@ -607,6 +607,17 @@ def test_search_additional_item_information(session):
     es_result = result.json()
     assert es_result['totalItems'] > 20 # Matching for example: h08ndxddfg5v2pjf
 
+def test_search_additional_item_information_2(session):
+    # associatedMedia.marc:publicNote
+    query_params = {'_q': 'hasAdditionalItemInformation:(skillsoft)',
+                    '_appConfig': json.dumps(DEFAULT_FILTERS)}
+    result = session.get(FIND_API,
+                         params=query_params)
+    assert result.status_code == 200
+
+    es_result = result.json()
+    assert es_result['totalItems'] == 1 # Matching ID: q82jf4h20ff6gbm
+
 def test_search_item_information(session):
     # hasNote.label + shelfMark.label + cataloguersNote
     query_params = {'_q': 'bestånd:(Tryckningar finns Sv2009 nb2009mon)',
